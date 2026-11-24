@@ -9,25 +9,45 @@
 
 コードレビュー、アーキテクチャ、技術的負債、テスト品質、ヘルスダッシュボード、範囲を限定した修正の六つのワークフロー。十二冊のソフトウェア工学の古典に基づきます。
 
-公開済みバージョン：[npm](https://www.npmjs.com/package/brooks-lint) · [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases)
+上流プロジェクトのリリースは [npm](https://www.npmjs.com/package/brooks-lint) と [GitHub](https://github.com/hyhmrright/brooks-lint/releases) で公開されています。
 
 [1.9.1 から 2.0.0 への移行](docs/migration-v2.md)
 brooks-lint は共通ガイドと決定的なレポートツールを一つのスキルにまとめます。診断するのは利用者のコーディングエージェントです。静的解析器ではなく、すべての欠陥を発見する保証もありません。
 
-## Codex で始める
+## `npx skills` でインストール
+
+Node.js 22.20.0 以降を使い、Brooks Lint を使用するプロジェクトでこのコマンドを実行します。このフォークの `main` ブランチからバンドルを直接インストールします。
 
 ```bash
 npx skills add imsight-forks/brooks-lint --skill brooks-lint --agent codex
 ```
 
-```text
-$brooks-lint brooks-lint->review Review the current diff and identify supported maintainability risks.
-$brooks-lint brooks-lint->health Assess this repository; distinguish missing evidence from clean dimensions.
+`--skill brooks-lint` で分析用バンドルを選択します。プロジェクトへのインストールでは `.agents/skills/brooks-lint/` に配置され、`skills-lock.json` に一件登録されます。全プロジェクトで使う場合は `--global` を追加します。
+
+ローカルの変更を使うには、チェックアウトのパスを指定します。
+
+```bash
+npx skills add "/path/to/brooks-lint" --skill brooks-lint --agent codex
 ```
 
-Codex の対象プロジェクトでインストールコマンドを実行します。スキルを認識させるには新しいセッションを開始します。[Codex ガイド](docs/codex-setup.md)。
+GitHub からプロジェクトに入れたバンドルの一覧表示、更新、削除には次のコマンドを使います。
 
-Node.js 20+ で公開済みの最新版をインストール：`npx brooks-lint@latest install codex`。詳しくは[入門ガイド](docs/getting-started.md)を参照してください。
+```bash
+npx skills list --agent codex
+npx skills update brooks-lint --project
+npx skills remove brooks-lint
+```
+
+## 一つのスキルと六つのモード
+
+エージェントは親の `SKILL.md` を認識し、指定されたモードの `SKILL-MAIN.md` を読み込みます。共通資料、六つのガイド、ヘルスダッシュボードのスコア計算・配信ツールは同じバンドルに含まれます。
+
+Brooks Lint は明示的に呼び出したときだけ実行されます。インストール後に Codex で新しいセッションを開始し、`$brooks-lint` を選んでモードと対象範囲を指定します。各モードは従来の入力、`.brooks-lint.yaml` 設定、レポート形式を使います。
+
+```text
+$brooks-lint brooks-lint->review Review the current diff and identify supported maintainability risks.
+$brooks-lint brooks-lint->health Assess this repository and identify any unassessed dimensions.
+```
 
 ## 目的に合う最小のワークフローを選ぶ
 
@@ -40,7 +60,7 @@ Node.js 20+ で公開済みの最新版をインストール：`npx brooks-lint@
 | `brooks-lint->health` | 四つの観点を簡潔に評価し、証拠の範囲を明示したダッシュボード。 | なし |
 | `brooks-lint->sweep` | 限定した範囲で診断し、許可済みかつ検証可能な修正を実施。 | あり |
 
-Codex では `$brooks-lint` を明示的に呼び出し、モードを指定します。Health は四つの完全な監査の代替ではありません。Sweep は編集・検証機能を必要とし、既存の許可を尊重します。複数ファイルという理由だけで再確認しません。
+Health は四つの完全な監査の代替ではありません。Sweep は編集・検証機能を必要とし、既存の許可を尊重します。複数ファイルという理由だけで再確認しません。
 
 ## レポートの読み方
 

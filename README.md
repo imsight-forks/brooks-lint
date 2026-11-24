@@ -9,27 +9,61 @@
 
 Six focused workflows for code review, architecture, technical debt, test quality, a health dashboard, and scoped repairs — grounded in twelve classic engineering books.
 
-Published versions: [npm](https://www.npmjs.com/package/brooks-lint) · [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases)
+Upstream releases on [npm](https://www.npmjs.com/package/brooks-lint) and [GitHub](https://github.com/hyhmrright/brooks-lint/releases)
 
 [Migration from 1.9.1 to 2.0.0](docs/migration-v2.md)
 brooks-lint bundles guidance and deterministic reporting tools in a single Agent Skill. Your coding agent performs the diagnosis; the project supplies a repeatable workflow, risk vocabulary and reporting contract. It is not a static analyzer and it does not guarantee that a model finds every defect.
 
-## Quick start: Codex
+## Install with `npx skills`
+
+With Node.js **22.20.0 or later**, run this command from the project where you want to use Brooks Lint. It installs the bundle directly from this fork's `main` branch. [Skills CLI requirements](https://github.com/vercel-labs/skills/blob/v1.9.0/README.md#install-a-skill)
 
 ```bash
 npx skills add imsight-forks/brooks-lint --skill brooks-lint --agent codex
 ```
 
-```text
-$brooks-lint brooks-lint->review Review the current diff and identify supported maintainability risks.
-$brooks-lint brooks-lint->health Assess this repository; distinguish missing evidence from clean dimensions.
+`--skill brooks-lint` selects the analysis bundle. A Codex project install places it in `.agents/skills/brooks-lint/` and records one entry in `skills-lock.json`. Add `--global` to install across your projects.
+
+To install an unpublished change from a local checkout, pass its path as the source.
+
+```bash
+npx skills add "/path/to/brooks-lint" --skill brooks-lint --agent codex
 ```
 
-Run the install command in the project you want to use with Codex. Start a new session to refresh skill discovery. See the [Codex guide](docs/codex-setup.md) for install options.
+List, update, or remove a GitHub-backed project install with the Skills CLI. [Skills CLI commands](https://github.com/vercel-labs/skills/blob/v1.9.0/docs/commands.md)
 
-Install the latest published package with Node.js 20+: `npx brooks-lint@latest install codex`. See [getting started](docs/getting-started.md) for other installation targets.
+```bash
+npx skills list --agent codex
+npx skills update brooks-lint --project
+npx skills remove brooks-lint
+```
 
-## Choose the smallest workflow that fits
+When moving from a previous install of the six standalone skills, use the original installer or manager to remove the old entries by name. See [getting started](docs/getting-started.md) for other hosts and installation methods.
+
+## One skill, six modes
+
+The bundle contains the shared analysis references, all six mode guides, and the health mode's scoring and delivery tools. The host discovers the parent's `SKILL.md`. Brooks Lint loads the selected mode's `SKILL-MAIN.md` from within the same bundle.
+
+```text
+skills/brooks-lint/
+├── SKILL.md
+├── agents/openai.yaml
+├── references/
+└── subskills/
+    ├── review/SKILL-MAIN.md
+    ├── audit/SKILL-MAIN.md
+    ├── debt/SKILL-MAIN.md
+    ├── test/SKILL-MAIN.md
+    ├── health/SKILL-MAIN.md
+    └── sweep/SKILL-MAIN.md
+```
+
+Brooks Lint runs only when you invoke it. After installation, start a new Codex session, select `$brooks-lint`, and specify a mode route and the scope to analyze. Each mode uses the existing inputs, `.brooks-lint.yaml` configuration, and report format.
+
+```text
+$brooks-lint brooks-lint->review Review the current diff and identify supported maintainability risks.
+$brooks-lint brooks-lint->health Assess this repository and identify any unassessed dimensions.
+```
 
 | Mode route | Use it for | Changes files? |
 |---|---|---|
@@ -40,7 +74,7 @@ Install the latest published package with Node.js 20+: `npx brooks-lint@latest i
 | `brooks-lint->health` | An abbreviated four-dimension assessment and evidence-scoped dashboard. | No |
 | `brooks-lint->sweep` | Diagnose and apply authorized, verifiable repairs within a bounded scope. | Yes |
 
-Select `$brooks-lint` explicitly in Codex and use the desired mode route. Health is a summary, not four exhaustive audits. Sweep requires editing and verification capabilities and respects existing authorization; it does not demand another approval merely because a change spans files.
+Sweep requires editing and verification capabilities and follows the existing authorization rules.
 
 ## What a report means
 

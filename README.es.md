@@ -9,25 +9,45 @@
 
 Seis flujos para revisión de código, arquitectura, deuda técnica, calidad de pruebas, un panel de salud y reparaciones acotadas, basados en doce libros clásicos de ingeniería de software.
 
-Versiones publicadas: [npm](https://www.npmjs.com/package/brooks-lint) · [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases)
+Versiones del proyecto original en [npm](https://www.npmjs.com/package/brooks-lint) y [GitHub](https://github.com/hyhmrright/brooks-lint/releases)
 
 [Migración de 1.9.1 a 2.0.0](docs/migration-v2.md)
 brooks-lint reúne las instrucciones y herramientas de informes en una sola habilidad. Tu agente de programación realiza el diagnóstico. No es un analizador estático ni garantiza que el modelo encuentre todos los defectos.
 
-## Empezar con Codex
+## Instalar con `npx skills`
+
+Con Node.js 22.20.0 o posterior, ejecuta este comando en el proyecto donde vas a usar Brooks Lint. Instala el paquete directamente desde la rama `main` de este fork.
 
 ```bash
 npx skills add imsight-forks/brooks-lint --skill brooks-lint --agent codex
 ```
 
-```text
-$brooks-lint brooks-lint->review Review the current diff and identify supported maintainability risks.
-$brooks-lint brooks-lint->health Assess this repository; distinguish missing evidence from clean dimensions.
+`--skill brooks-lint` selecciona el paquete de análisis. Codex lo instala en `.agents/skills/brooks-lint/` y registra una entrada en `skills-lock.json`. Añade `--global` para usarlo en todos tus proyectos.
+
+Para instalar cambios de una copia local, indica la ruta del repositorio.
+
+```bash
+npx skills add "/path/to/brooks-lint" --skill brooks-lint --agent codex
 ```
 
-Ejecuta el comando de instalación en el proyecto de Codex. Abre una sesión nueva para que Codex detecte la habilidad. Consulta la [guía de Codex](docs/codex-setup.md).
+Para consultar, actualizar o quitar una instalación de proyecto desde GitHub, usa estos comandos.
 
-Instala la última versión publicada con Node.js 20+: `npx brooks-lint@latest install codex`. Consulta [primeros pasos](docs/getting-started.md) para otros destinos.
+```bash
+npx skills list --agent codex
+npx skills update brooks-lint --project
+npx skills remove brooks-lint
+```
+
+## Una habilidad con seis modos
+
+El agente descubre el `SKILL.md` principal y carga el `SKILL-MAIN.md` del modo que elijas. El mismo paquete contiene las referencias, las seis guías y las herramientas de puntuación y entrega del panel de salud.
+
+Brooks Lint solo se ejecuta cuando lo invocas. Después de instalarlo, abre una sesión nueva en Codex, selecciona `$brooks-lint` y especifica el modo y el alcance. Cada modo usa las mismas entradas, configuración `.brooks-lint.yaml` y formato de informe.
+
+```text
+$brooks-lint brooks-lint->review Review the current diff and identify supported maintainability risks.
+$brooks-lint brooks-lint->health Assess this repository and identify any unassessed dimensions.
+```
 
 ## Elegir el flujo más acotado para la tarea
 
@@ -40,7 +60,7 @@ Instala la última versión publicada con Node.js 20+: `npx brooks-lint@latest i
 | `brooks-lint->health` | Evaluación abreviada de cuatro dimensiones y un panel limitado por la evidencia. | No |
 | `brooks-lint->sweep` | Diagnosticar y aplicar reparaciones autorizadas y verificables dentro de un alcance definido. | Sí |
 
-Selecciona `$brooks-lint` de forma explícita en Codex y elige el modo. Health no sustituye cuatro auditorías exhaustivas. Sweep necesita herramientas de edición y verificación, respeta la autorización existente y no vuelve a pedir permiso solo porque cambien varios archivos.
+Health no sustituye cuatro auditorías exhaustivas. Sweep necesita herramientas de edición y verificación, respeta la autorización existente y no vuelve a pedir permiso solo porque cambien varios archivos.
 
 ## Cómo interpretar un informe
 

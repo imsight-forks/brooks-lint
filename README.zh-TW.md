@@ -9,25 +9,45 @@
 
 六個工作流程，覆蓋程式碼審查、架構、技術債、測試品質、健康看板與限定範圍的修復，以十二本經典軟體工程書籍為基礎。
 
-已發布版本：[npm](https://www.npmjs.com/package/brooks-lint) · [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases)
+上游版本發布於 [npm](https://www.npmjs.com/package/brooks-lint) 和 [GitHub](https://github.com/hyhmrright/brooks-lint/releases)。
 
 [從 1.9.1 遷移至 2.0.0](docs/migration-v2.md)
 brooks-lint 將共享規則和確定性報告工具打包成一個技能。診斷由你的編碼代理執行；專案提供工作流程、風險分類和報告約定。它不是靜態分析器，也不保證模型能發現所有缺陷。
 
-## 從 Codex 開始
+## 使用 `npx skills` 安裝
+
+請使用 Node.js 22.20.0 或更新版本，在要使用 Brooks Lint 的專案中執行以下指令。該指令會直接從此分支儲存庫的 `main` 分支安裝技能套件。
 
 ```bash
 npx skills add imsight-forks/brooks-lint --skill brooks-lint --agent codex
 ```
 
-```text
-$brooks-lint brooks-lint->review Review the current diff and identify supported maintainability risks.
-$brooks-lint brooks-lint->health Assess this repository; distinguish missing evidence from clean dimensions.
+`--skill brooks-lint` 用來選取分析技能套件。專案層級的安裝會將它放在 `.agents/skills/brooks-lint/`，並在 `skills-lock.json` 中記錄一筆。加上 `--global` 可供所有專案使用。
+
+如需安裝本機修改，請指定本機儲存庫的路徑。
+
+```bash
+npx skills add "/path/to/brooks-lint" --skill brooks-lint --agent codex
 ```
 
-在目標 Codex 專案中執行安裝指令。開啟新工作階段可重新探索技能。詳見 [Codex 指南](docs/codex-setup.md)。
+透過下列指令查看、更新或移除從 GitHub 安裝到專案中的技能套件。
 
-使用 Node.js 20+ 安裝最新發布版本：`npx brooks-lint@latest install codex`。其他安裝目標見[入門指南](docs/getting-started.md)。
+```bash
+npx skills list --agent codex
+npx skills update brooks-lint --project
+npx skills remove brooks-lint
+```
+
+## 一個技能，六種模式
+
+代理程式探索到父技能的 `SKILL.md` 後，會依所選模式讀取對應的 `SKILL-MAIN.md`。共用參考資料、六份模式指南和健康看板的評分與交付工具均在同一個技能套件內。
+
+Brooks Lint 只會在明確呼叫時執行。安裝後開啟新的 Codex 工作階段，選取 `$brooks-lint`，再指定模式和分析範圍。各模式沿用原有輸入、`.brooks-lint.yaml` 設定和報告格式。
+
+```text
+$brooks-lint brooks-lint->review Review the current diff and identify supported maintainability risks.
+$brooks-lint brooks-lint->health Assess this repository and identify any unassessed dimensions.
+```
 
 ## 選擇符合任務範圍的技能
 
@@ -40,7 +60,7 @@ $brooks-lint brooks-lint->health Assess this repository; distinguish missing evi
 | `brooks-lint->health` | 四個維度的簡要評估和有證據範圍限制的看板。 | 否 |
 | `brooks-lint->sweep` | 在限定範圍內診斷並執行已授權、可驗證的修復。 | 是 |
 
-在 Codex 中明確呼叫 `$brooks-lint` 並指定模式。Health 是摘要，不是四次窮盡式審計。Sweep 需要編輯和驗證能力，並沿用現有授權；不會僅因修改多個檔案就再次要求確認。
+Health 是摘要，不是四次窮盡式審計。Sweep 需要編輯和驗證能力，並沿用現有授權；不會僅因修改多個檔案就再次要求確認。
 
 ## 如何理解報告
 
