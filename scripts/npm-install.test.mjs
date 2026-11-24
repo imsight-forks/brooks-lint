@@ -5,6 +5,7 @@ import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from 'node:
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BUNDLE_NAME, MODES } from './modes.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const cli = path.join(root, 'bin/brooks-lint.mjs');
 const platforms = {
@@ -25,17 +26,23 @@ async function fixture(t) {
   return { dir, home, cwd, env, run: (...args) => spawnSync(process.execPath, [cli, ...args], { cwd, env, encoding: 'utf8' }) };
 }
 async function verifySkills(dest) {
-  const sourceEntries = await readdir(path.join(root, 'skills'));
-  for (const entry of sourceEntries) {
-    const file = entry === '_shared' ? 'common.md' : 'SKILL.md';
-    assert.equal(await readFile(path.join(dest, entry, file), 'utf8'), await readFile(path.join(root, 'skills', entry, file), 'utf8'));
+  const files = [
+    'SKILL.md', 'agents/openai.yaml', 'references/common.md',
+    ...Object.entries(MODES).flatMap(([mode, { guides }]) => [
+      `subskills/${mode}/SKILL-MAIN.md`,
+      ...guides.map(guide => `subskills/${mode}/references/${guide}`),
+    ]),
+  ];
+  for (const file of files) {
+    assert.equal(await readFile(path.join(dest, BUNDLE_NAME, file), 'utf8'),
+      await readFile(path.join(root, 'skills', BUNDLE_NAME, file), 'utf8'));
   }
-  assert.ok((await readFile(path.join(dest, '_shared/common.md'), 'utf8')).length);
 }
 async function verifyInstalledHealthHelper(dest, fixture) {
-  const relative = 'brooks-health/scripts/score-dashboard.mjs';
+  const relative = 'brooks-lint/subskills/health/scripts/score-dashboard.mjs';
+  const ledgerGuide = 'brooks-lint/subskills/health/references/score-ledger.md';
   assert.equal(await readFile(path.join(dest, relative), 'utf8'), await readFile(path.join(root, 'skills', relative), 'utf8'));
-  assert.equal(await readFile(path.join(dest, 'brooks-health/score-ledger.md'), 'utf8'), await readFile(path.join(root, 'skills/brooks-health/score-ledger.md'), 'utf8'));
+  assert.equal(await readFile(path.join(dest, ledgerGuide), 'utf8'), await readFile(path.join(root, 'skills', ledgerGuide), 'utf8'));
   const ledger = path.join(fixture.cwd, 'health-ledger.json'), report = path.join(fixture.cwd, 'health-report.md');
   await writeFile(ledger, JSON.stringify({ hasDiff: true, dimensions: {
     pr: { status: 'assessed', findings: [{ id: 'P1', risk: 'R1', severity: 'warning' }] },
@@ -53,7 +60,7 @@ async function verifyInstalledHealthHelper(dest, fixture) {
   await writeFile(report, rendered.stdout.replace('99/100', '98/100'));
   assert.notEqual(run('check', ledger, report).status, 0);
 }
-test('every canonical global and project mapping installs flat bundled skills', async t => {
+test('every canonical global and project mapping installs one Brooks Lint bundle', async t => {
   const f = await fixture(t);
   const list = f.run('--list'); assert.equal(list.status, 0, list.stderr);
   assert.deepEqual(list.stdout.trim().replace('Supported platforms: ', '').split(' '), Object.keys(platforms));
@@ -61,7 +68,9 @@ test('every canonical global and project mapping installs flat bundled skills', 
     for (const [scope, base] of [[0, f.home], [1, f.cwd]]) {
       const result = f.run('install', platform, ...(scope ? ['--project'] : []));
       assert.equal(result.status, 0, `${platform}: ${result.stderr}`);
-      await verifySkills(path.join(base, mapping[scope]));
+      const destination = path.join(base, mapping[scope]);
+      await verifySkills(destination);
+      assert.deepEqual(await readdir(destination), [BUNDLE_NAME]);
     }
   }
 });
@@ -96,7 +105,7 @@ test('source overlap and symlink aliases are rejected', async t => {
   for (const dest of [source, path.join(source, 'child'), root]) assert.notEqual(f.run('install', '--dir', dest).status, 0);
   const alias = path.join(f.dir, 'alias'); await symlink(source, alias, 'dir');
   assert.notEqual(f.run('install', '--dir', path.join(alias, 'child')).status, 0);
-  const dest = path.join(f.dir, 'dest'); await mkdir(dest); await symlink(path.join(source, 'brooks-review'), path.join(dest, 'brooks-review'), 'dir');
+  const dest = path.join(f.dir, 'dest'); await mkdir(dest); await symlink(path.join(source, BUNDLE_NAME), path.join(dest, BUNDLE_NAME), 'dir');
   assert.notEqual(f.run('install', '--dir', dest).status, 0);
 });
 test('npm packed artifact can install without repository files or network', async t => {

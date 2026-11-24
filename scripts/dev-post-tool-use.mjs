@@ -4,7 +4,7 @@
  * Reads the Claude Code PostToolUse JSON payload from stdin and runs
  * `npm run validate` (manifest/badge/changelog/book-count/skill-step gate) when an
  * edit touches a drift-prone file. Local-test skill loading is handled separately
- * by a symlink (~/.claude/skills/brooks-lint -> repo skills/), not by this hook.
+ * by a symlink (~/.claude/skills/brooks-lint -> repo skills/brooks-lint/).
  *
  * Wired up from .claude/settings.local.json (maintainer-local, untracked):
  *   PostToolUse → command: node "$CLAUDE_PROJECT_DIR/scripts/dev-post-tool-use.mjs"

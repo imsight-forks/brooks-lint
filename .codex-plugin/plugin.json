@@ -32,9 +32,9 @@
     ],
     "websiteURL": "https://github.com/hyhmrright/brooks-lint",
     "defaultPrompt": [
-      "Review this PR for code decay risks",
-      "Audit this codebase's architecture",
-      "Assess the tech debt in this repo"
+      "$brooks-lint brooks-lint->review Review this PR for code decay risks",
+      "$brooks-lint brooks-lint->audit Audit this codebase's architecture",
+      "$brooks-lint brooks-lint->debt Assess the tech debt in this repo"
     ],
     "composerIcon": "./assets/logo.svg",
     "logo": "./assets/logo.svg"

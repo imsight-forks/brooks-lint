@@ -15,13 +15,13 @@ assignees: ''
 
 | File | Change |
 |------|--------|
-| `skills/_shared/common.md` | |
-| `skills/_shared/decay-risks.md` | |
-| `skills/_shared/test-decay-risks.md` | |
-| `skills/brooks-review/` | |
-| `skills/brooks-audit/` | |
-| `skills/brooks-debt/` | |
-| `skills/brooks-test/` | |
+| `skills/brooks-lint/references/common.md` | |
+| `skills/brooks-lint/references/decay-risks.md` | |
+| `skills/brooks-lint/references/test-decay-risks.md` | |
+| `skills/brooks-lint/subskills/review/` | |
+| `skills/brooks-lint/subskills/audit/` | |
+| `skills/brooks-lint/subskills/debt/` | |
+| `skills/brooks-lint/subskills/test/` | |
 | Other: | |
 
 ## Book citation (if applicable)

@@ -6,7 +6,15 @@ version or execution environment has the same capabilities.
 
 ## Install
 
-For current main, clone the repository and run:
+Install into the current project with the Skills CLI.
+
+```bash
+npx skills add imsight-forks/brooks-lint --skill brooks-lint --agent codex
+```
+
+This installs `.agents/skills/brooks-lint`. For a local checkout, use its path
+as the source instead of the GitHub repository. The shell installer is also
+available from the checkout.
 
 ```bash
 bash scripts/install.sh codex
@@ -18,26 +26,24 @@ npm installer supports the same target and custom `--dir` destinations. For the
 latest published package, use `npx brooks-lint@latest install codex` with Node.js 20+.
 See [npm](https://www.npmjs.com/package/brooks-lint) and [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases) for available versions.
 
-Keep `_shared` beside the six `brooks-*` directories. Preserve health's
-`score-ledger.md` and `scripts/` resources. This repository's own maintenance
-checkout exposes skills under `.agents/skills/` through symlinks; that is distinct
-from the installer's copied layout. See [getting started](getting-started.md).
+Keep the parent, shared references, and six subskills together. This repository
+also links `.agents/skills/brooks-lint` to its source bundle for local development.
+See [getting started](getting-started.md).
 
 ## Invoke and verify scope
 
 Start a new Codex session after installation if discovery has not refreshed.
-Ask for a concrete scope:
+Invoke the skill explicitly and give it a concrete scope:
 
 ```text
-$brooks-review Review the current diff against its caller contract.
-$brooks-test Review the existing tests in tests/payments/ for lost protection.
-$brooks-health Assess this repository and state unassessed dimensions explicitly.
+$brooks-lint brooks-lint->review Review the current diff against its caller contract.
+$brooks-lint brooks-lint->test Review the existing tests in tests/payments/ for lost protection.
+$brooks-lint brooks-lint->health Assess this repository and state unassessed dimensions explicitly.
 ```
 
-The agent must read the selected SKILL.md, its guide and shared references. A
-successful installation is not evidence that those files were actually read.
-Review the session's file-read/tool records when checking activation. Natural
-language discovery is host/model-dependent, not a guarantee made by this plugin.
+The agent loads the parent's `SKILL.md` and reads the selected `SKILL-MAIN.md`,
+its guide, and the shared references. Review the session's file-read records
+when checking activation.
 
 Read-only modes do not authorize edits. Sweep needs an authorized scope and
 available editing/verification tools; it must stop honestly when required checks

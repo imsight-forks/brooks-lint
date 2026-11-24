@@ -1,6 +1,6 @@
 # Runner Contracts
 
-The six interactive skills and the API runners share diagnostic rules, but they do
+The six interactive modes and the API runners share diagnostic rules, but they do
 not have the same execution capabilities. The canonical executable mode registry
 is used by prompt assembly, scenario validation, and runner admission checks.
 

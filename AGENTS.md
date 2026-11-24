@@ -6,13 +6,12 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 **brooks-lint** is a portable Agent-Skills code quality tool — it runs on any Agent-Skills-compatible agent (Codex CLI, OpenCode, Cursor, Antigravity, pi, and others that read `AGENTS.md` and load `SKILL.md` skills) to diagnose code quality across twelve "decay risk" dimensions: six in production code (R1 Cognitive Overload, R2 Change Propagation, R3 Knowledge Duplication, R4 Accidental Complexity, R5 Dependency Disorder, R6 Domain Model Distortion) and six in the test suite (T1 Test Obscurity, T2 Test Brittleness, T3 Test Duplication, T4 Mock Abuse, T5 Coverage Illusion, T6 Architecture Mismatch).
 
 ## Skill Integration
-- **Auto-trigger:** You **must** proactively use the appropriate skill whenever discussing code quality, PR reviews, architecture health, test quality, or technical debt.
-- **Skill invocation:** Activate the matching skill with `$brooks-review`, `$brooks-audit`, `$brooks-debt`, `$brooks-test`, `$brooks-health`, or `$brooks-sweep`.
+- **Manual invocation:** Run Brooks Lint when the user explicitly selects it. In Codex, use `$brooks-lint brooks-lint->review` and pass the desired scope.
 
 ## Engineering Standards
 - **Comment Preference:** All internal documentation and configuration should remain in English for international consistency.
 - **The Iron Law:** NEVER suggest fixes before completing risk diagnosis. Every finding MUST follow: **Symptom → Source → Consequence → Remedy**.
-- **Scoring System:** Base score 100, floor 0. Per-finding deductions depend on the `strictness` preset in `.brooks-lint.yaml` — `balanced` applies when the key is absent. Canonical table lives in `skills/_shared/common.md`:
+- **Scoring System:** Base score 100, floor 0. Per-finding deductions depend on the `strictness` preset in `.brooks-lint.yaml` — `balanced` applies when the key is absent. Canonical table lives in `skills/brooks-lint/references/common.md`:
 
   | Preset | 🔴 Critical | 🟡 Warning | 🟢 Suggestion |
   |--------|------------|-----------|--------------|
@@ -21,13 +20,11 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
   | `legacy-friendly` | −8 | −3 | −1 |
 
 - **Project Config:** If a `.brooks-lint.yaml` exists in the project root, read and apply it before running any review mode — including `strictness`, which changes the weights above.
-- **SKILL.md Process vs guide steps:** `SKILL.md` Process is a high-level skeleton (3–6 items) that cites guide Step ranges inline (e.g. `Scan decay risks (Steps 1–7 of the guide)`); the guide owns the detailed numbered steps. Counts do NOT need to match 1:1. Automated: `npm run validate` checks guide step continuity (sub-steps like `2a`/`6b` allowed) and SKILL.md Process-section presence.
-- **Trigger descriptions:** Every `SKILL.md` `description:` field must include a "Do NOT trigger for:" clause defining the negative boundary to prevent false triggering.
-- **OpenCode slash opt-in:** Every `SKILL.md` frontmatter must also carry `metadata:` › `opencode/slash: "true"` — OpenCode v2 lists a skill in its `/` menu only when that key is set, and no other platform reads it. Automated: `npm run validate`.
+- **Workflow and guides:** Each `SKILL-MAIN.md` has a numbered `Workflow` that points to the detailed guide steps. `npm run validate` checks the workflow, routing, and guide-step continuity.
+- **Explicit invocation:** Keep the parent manual-only in its frontmatter and `agents/openai.yaml`. Its `metadata.opencode/slash` flag exposes `/brooks-lint` in OpenCode v2.
 
 ## Project Structure
-- `skills/brooks-{review,audit,debt,test,health,sweep}/`: the six skills — PR Review, Architecture Audit, Tech Debt, Test Quality, Health Dashboard, Full Sweep — each a `SKILL.md` plus its guide.
-- `skills/_shared/`: shared framework (common.md, source-coverage.md, decay-risks.md, test-decay-risks.md, remedy-guide.md, custom-risks-guide.md).
+- `skills/brooks-lint/` contains the parent `SKILL.md`, shared `references/`, and six `subskills/<mode>/SKILL-MAIN.md` entrypoints.
 - `.codex-plugin/`: Plugin metadata for Codex CLI installation.
 - `hooks/`: SessionStart hook for session-level awareness (not used by Codex CLI).
 - `commands/`: Short-form command wrappers for Claude Code (not used by Codex CLI).
@@ -60,12 +57,10 @@ available Codex collaboration tools.
 - Run `npm run validate`, `npm test`, and `npm run evals` before handing off changes.
   Codex does not use `.claude/settings.local.json`; the Claude PostToolUse hook
   is not a substitute for this explicit verification gate.
-- Use the repository's `skills/` as the source for local analysis. Each analysis
-  skill is symlinked into `.agents/skills/` so edits are available without copying
-  into a plugin cache. `_shared` is linked alongside them for relative references.
+- Use the source bundle under `skills/brooks-lint/`. The `.agents/skills/brooks-lint` link exposes it for local development.
 - Keep existing unrelated changes intact. Stage only task-owned changes.
 - Version comes from `package.json`; book inventory comes from
-  `skills/_shared/source-coverage.md`; version-bearing text files come from
+  `skills/brooks-lint/references/source-coverage.md`; version-bearing text files come from
   `scripts/version-refs.mjs`.
 - VS Code extension work is outside this repository's scope.
 - `npm run evals:live` currently uses Anthropic and needs `ANTHROPIC_API_KEY`.
@@ -79,36 +74,29 @@ for Codex use the repository skills and explicit verification gate above.
 ## Maintainer Reference (Migrated from Claude Code)
 
 - **Skill sync after edit:** Codex loads this checkout through `.agents/skills/` symlinks. Update `skills/` directly; do not copy into an installed cache. If a newly added skill is not visible, start a new Codex session.
-- **`_shared/` is not a skill:** It holds shared framework files (Iron Law, Report Template, decay-risk definitions). Skills must explicitly read these with available file tools — they are NOT auto-loaded. The `_shared` symlink preserves their relative paths.
-- **SKILL.md Process vs guide steps:** Convention — `SKILL.md` Process provides a high-level skeleton (3–6 items) that cites the guide's step ranges inline, e.g. `Scan decay risks (Steps 1–7 of the guide)`. The guide owns the detailed numbered steps. The two do NOT need to match 1:1 — the skeleton is for orientation, the guide for execution. `npm run validate` enforces guide step continuity (no gaps, no duplicates; sub-steps like `Step 2a`, `Step 6b` are allowed) and SKILL.md Process-section presence. When renaming or renumbering guide steps, update any Step range citations in the SKILL.md Process.
-- **SKILL.md trigger descriptions:** Every `description:` field MUST include a "Do NOT trigger for:" clause. Without it, false triggering occurs (e.g. `brooks-debt` firing on HTTP `/health` questions).
-- **OpenCode slash opt-in:** Every `skills/*/SKILL.md` frontmatter must carry `metadata:` › `opencode/slash: "true"`. OpenCode v2 reads it in `packages/core/src/config/plugin/skill-file.ts` (`metadataBoolean(frontmatter.metadata, "opencode/slash")`) and only then lists the skill in the `/` menu; 1.x ignores the key harmlessly. No other platform reads it, so a seventh skill would ship with a silently missing `/brooks-*` on OpenCode — `checkOpencodeSlashFlag()` in `validate-repo.mjs` is the only thing that catches it. Do **not** ship `commands/opencode/*.md` wrappers instead (PR #34): on v2 a command that shares a skill's name *shadows* the skill — the `/` popup skips skills already registered as commands (`autocomplete.tsx:526`) and submit checks `isCommand` before `isSkill` (`index.tsx:1292`).
+- **Workflow and guides:** Each `SKILL-MAIN.md` has a numbered `Workflow` that points to the detailed guide steps. `npm run validate` checks the workflow, routing, and guide-step continuity.
+- **Explicit invocation:** Keep the parent manual-only in its frontmatter and `agents/openai.yaml`. Its `metadata.opencode/slash` flag exposes `/brooks-lint` in OpenCode v2.
 - **Book count is derived, never hardcoded:** `validate-repo.mjs` reads `source-coverage.md` frontmatter and derives `sourceCount` from it. Adding a book = update the frontmatter list + add the corresponding section; the validator auto-adapts.
 - **`package.json` is ESM:** `"type": "module"` enables ESM for everything in `scripts/`. Skills are plain markdown — no bundling.
-- **Slash commands:** Plugin skills register as `/brooks-lint:brooks-review`. Short forms (`/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`, `/brooks-health`, `/brooks-sweep`) are auto-installed to `~/.claude/commands/` by the session-start hook — they are thin wrappers, not separate definitions. Each wrapper body must **`Read` its skill's `SKILL.md` directly**, NOT "use the Skill tool to invoke …" — a purely self-referential body loops forever when the skill is model-invoked (upstream re-injects the body without the `<command-name>` tag; issue #21 / `anthropics/claude-code#54535`). The hook substitutes `${CLAUDE_PLUGIN_ROOT}` → the absolute plugin path when installing short forms, because that variable does not expand in user commands. `commands/*.md` is shared: the Gemini extension (`gemini-extension.json`) consumes it as-is; Codex loads `skills/` only.
-- **Codex plugin validator — two deliberate failures:** `python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .` (ships with codex-cli) mirrors OpenAI's *workspace ingestion* schema, which is stricter than the Codex CLI loader brooks-lint actually installs through. `interface.defaultPrompt` was a genuine gap and is now fixed; the remaining two failures are intentional and must NOT be "fixed":
-  - `` field `commands` is not accepted `` — `"commands": []` is what stops the CLI from migrating `commands/*.md` into duplicate `source-command-brooks-*` skills (issue #22). Confirmed by installing both ways under an isolated `CODEX_HOME`: drop the field and Codex regenerates `.codex-plugin/migrated-command-skills/`. The CLI's `RawPluginManifest` accepts `commands`; only the ingestion schema rejects it.
-  - `` skill `_shared` is missing `SKILL.md` `` — the validator only skips dot-prefixed dirs, and `_shared/` is a shared-framework dir by design (see above). Renaming it to `.shared/` would also require changing `install.sh`'s `cp -R "$SRC"/*`, whose glob does not match dot-dirs.
+- **Slash commands:** The plugin registers `/brooks-lint:brooks-lint`. The SessionStart hook installs the six existing short commands. Each command reads the parent `SKILL.md` directly and forwards its original arguments to the corresponding subskill. The hook resolves `${CLAUDE_PLUGIN_ROOT}` for user-installed wrappers.
+- **Codex manifest:** Keep `"commands": []` to prevent the Codex CLI from migrating Claude command adapters into extra discoverable skills.
 - **GitHub Action cache:** `.github/actions/brooks-lint/action.yml` uses `actions/cache@v6` with built-in cache-hit guard — do NOT add a manual directory check.
 - **Adding a platform is derived, not hardcoded:** create `docs/<name>-setup.md`, add the platform to `install.sh`'s `PLATFORMS` **and** both `global_dir()` / `project_dir()` case tables, then link the new guide from every `README*.md` and `docs/getting-started.md` **and** add the name to each of those documents' `<platform> = …` enumeration (the `<平台> = …` line in the zh translations). That enumeration must list every `PLATFORMS` entry, `claude` included — it is the one spot a platform has to be spelled out, since a bare mention elsewhere is worthless as a check (`~/.bob/skills` in a table row already contains "bob"). `npm run validate` derives all three sides (`scripts/platforms.mjs`) and fails on any gap — a guide missing from one translation, a `PLATFORMS` entry with no directory mapping, or a platform absent from one document's enumeration. Do not add a hand-maintained platform list anywhere.
 - **Star history is data-first, never hand-drawn:** `assets/star-history.json` (raw `starred_at` timestamps, no usernames) is the source of truth; `assets/star-history.svg` is a pure function of it. Never hand-edit the SVG — `npm run validate` re-renders and fails on any mismatch. `node scripts/gen-star-history.mjs` refetches (needs `GITHUB_TOKEN` or `gh auth`, since GitHub restricted the stargazers API to admins/collaborators on 2026-06-30); `--render-only` redraws offline from the committed data. The render must stay deterministic — anchoring the time axis to the clock would make the weekly workflow commit noise on every run.
-- **Custom risks:** Teams add project-specific risk codes via `custom-risks-guide.md` in their project root. Template lives at `skills/_shared/custom-risks-guide.md`.
+- **Custom risks:** Teams add project-specific risk codes via `custom-risks-guide.md` in their project root. Template lives at `skills/brooks-lint/references/custom-risks-guide.md`.
 
-## How the Skills Work
+## How the Skill Works
 
-1. Codex discovers the local skills under `.agents/skills/`.
-2. Invoke `$brooks-review` (or the selected mode) and read its `SKILL.md`.
-3. Read `_shared/common.md`, the mode guide, and relevant risk definitions.
-4. Findings follow **Symptom → Source → Consequence → Remedy** and the standard
-   report template, with scoring from the project's strictness preset.
+1. Select the parent manually with the host’s skill command or use a retained native slash adapter.
+2. Load the parent `SKILL.md`, then the selected `SKILL-MAIN.md` and its references.
+3. Use the selected mode’s evidence checks and reporting contract.
 
-## Adding a New Skill
+## Adding a Mode
 
-1. `skills/{name}/SKILL.md` — frontmatter with `name`, `description` (must include the "Do NOT trigger for:" clause) and `metadata:` › `opencode/slash: "true"`, plus a `Process` section (3–6 bullets citing guide step ranges)
-2. `skills/{name}/{name}-guide.md` — sequentially numbered steps, no gaps; sub-steps like `Step 2a` allowed
-3. Add ≥1 happy-path eval scenario + ≥1 false-positive scenario (`no_risk_codes: true`) to `evals/evals.json`
-4. `npm run validate` (structure + step continuity) and `npm run evals` (eval schema)
-5. Test locally: link the new skill into `.agents/skills/`, invoke it in a Codex session, and verify the output. Keep `_shared` linked alongside the skill folders.
+1. Create `skills/brooks-lint/subskills/<mode>/SKILL-MAIN.md` with the Imsight invocation metadata, Overview, numbered Workflow, and Guardrails. Keep detailed steps in that mode’s `references/` directory.
+2. Add the route to the parent `SKILL.md` and register the mode and guides in `scripts/modes.mjs`.
+3. Add a happy-path and false-positive scenario to `evals/evals.json`, then run `npm run validate`, `npm test`, and `npm run evals`.
+4. Load the parent in a fresh session, invoke the mode, and verify its report against the tool and output contracts.
 
 ## Eval Suite
 

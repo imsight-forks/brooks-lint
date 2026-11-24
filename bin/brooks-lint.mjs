@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { cp, mkdir, readFile, readdir, realpath } from 'node:fs/promises';
+import { cp, mkdir, readFile, realpath } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,12 +7,13 @@ import { destination, readPlatforms } from '../scripts/npm-platforms.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const source = path.join(root, 'skills');
+const bundleName = 'brooks-lint';
 const help = `Usage: brooks-lint install <platform> [--project] [--dir PATH]
        brooks-lint install --dir PATH
        brooks-lint list | --list
        brooks-lint --version
 
-Install the bundled skills into your coding agent's skills folder.
+Install the Brooks Lint skill and its six modes into your agent's skills folder.
 --project  Use the current project's skills folder
 --dir PATH Use an explicit destination folder
 --help     Show this help
@@ -66,18 +67,13 @@ async function main() {
   if (contains(resolvedSource, resolvedTarget) || contains(resolvedTarget, resolvedSource)) {
     throw new Error('Destination must not overlap the bundled skills directory');
   }
-  const entries = await readdir(source, { withFileTypes: true });
-  // Check existing per-skill symlinks before making any writes.
-  for (const entry of entries) {
-    const resolved = await resolvedLocation(path.join(target, entry.name));
-    if (contains(resolvedSource, resolved) || contains(resolved, resolvedSource)) {
-      throw new Error('Destination entry overlaps the bundled skills directory');
-    }
+  const bundleTarget = path.join(target, bundleName);
+  const resolvedBundle = await resolvedLocation(bundleTarget);
+  if (contains(resolvedSource, resolvedBundle) || contains(resolvedBundle, resolvedSource)) {
+    throw new Error('Destination entry overlaps the bundled skills directory');
   }
   await mkdir(target, { recursive: true });
-  for (const entry of entries) {
-    await cp(path.join(source, entry.name), path.join(target, entry.name), { recursive: true, force: true });
-  }
-  console.log(`Installed brooks-lint skills (+ _shared/) into ${target}`);
+  await cp(path.join(source, bundleName), bundleTarget, { recursive: true, force: true });
+  console.log(`Installed brooks-lint into ${bundleTarget}`);
 }
 main().catch(error => { console.error(`error: ${error.message}`); process.exitCode = 1; });

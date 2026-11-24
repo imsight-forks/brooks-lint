@@ -3,7 +3,7 @@
 > Historical, abridged model-output examples, retained for illustration. Their scores, severity assignments and source attributions have not been revalidated against the current guides; they are not current benchmark evidence or normative report templates. Use the current skills and ledger contract for new reports.
 
 **Modes:** [PR Review](#pr-review-mode-1) | [Architecture Audit](#architecture-audit-mode-2) | [Tech Debt](#tech-debt-assessment-mode-3) | [Test Quality](#test-quality-review-mode-4)
-*For current Health Dashboard and Full Sweep behavior, see [health guidance](../skills/brooks-health/health-guide.md) and [sweep guidance](../skills/brooks-sweep/sweep-guide.md).*
+*For current Health Dashboard and Full Sweep behavior, see [health guidance](../skills/brooks-lint/subskills/health/references/health-guide.md) and [sweep guidance](../skills/brooks-lint/subskills/sweep/references/sweep-guide.md).*
 
 ---
 

@@ -24,9 +24,9 @@ time or benchmark volume. It is not a claim of twice the model capability.
 | Sweep report | Fix log and Health Score Delta/After layout | Final health dashboard contract plus supported stop reason and residuals | Custom consumers of the old layout need updating. The shipped parser preserves legacy After-score recognition; that does not make every custom consumer compatible |
 
 Evidence: compare the versioned health and sweep guides with their main versions;
-see [health](../skills/brooks-health/health-guide.md),
-[sweep](../skills/brooks-sweep/sweep-guide.md),
-[ledger](../skills/brooks-health/score-ledger.md), and
+see [health](../skills/brooks-lint/subskills/health/references/health-guide.md),
+[sweep](../skills/brooks-lint/subskills/sweep/references/sweep-guide.md),
+[ledger](../skills/brooks-lint/subskills/health/references/score-ledger.md), and
 [runner contracts](runner-contracts.md). Unknown input facts are not automatic
 proof of a defect; complete local evidence can support a bounded assessment.
 
@@ -41,7 +41,7 @@ trusted base-policy behavior were tightened and malformed reports now fail
 closed. Do not treat the latter as guaranteed compatibility for hand-written
 report consumers.
 
-Keep `_shared` beside all six skills and install health's nested resources.
+For the current source layout, install the entire [Brooks Lint bundle](getting-started.md).
 Node is needed for the shipped deterministic tools, but tool availability and
 verification claims remain explicit; this is not a promise that all hosts execute
 them. No migration requires a live benchmark or model account.

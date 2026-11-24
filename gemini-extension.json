@@ -14,28 +14,8 @@
   "contribution": {
     "skills": [
       {
-        "id": "brooks-review",
-        "path": "skills/brooks-review"
-      },
-      {
-        "id": "brooks-audit",
-        "path": "skills/brooks-audit"
-      },
-      {
-        "id": "brooks-debt",
-        "path": "skills/brooks-debt"
-      },
-      {
-        "id": "brooks-test",
-        "path": "skills/brooks-test"
-      },
-      {
-        "id": "brooks-health",
-        "path": "skills/brooks-health"
-      },
-      {
-        "id": "brooks-sweep",
-        "path": "skills/brooks-sweep"
+        "id": "brooks-lint",
+        "path": "skills/brooks-lint"
       }
     ],
     "commands": [

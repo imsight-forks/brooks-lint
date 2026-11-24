@@ -1,6 +1,6 @@
 # Real Codex behavioral evaluation
 
-`npm run evals:codex` compares the same natural task with and without the repository's six skills. It runs real, isolated Codex CLI sessions, then grades each final answer in a separate session that does not receive the experimental arm label or execution trace. This is distinct from the 64 structural scenarios, the frozen parser corpus, and the historical Anthropic API runner. It does not require an Anthropic key.
+`npm run evals:codex` compares the same task with and without the Brooks Lint bundle. For cases with an expected mode, the treatment prompt selects the parent and its mode explicitly. The runner grades each final answer from the isolated Codex CLI sessions without revealing the experimental arm or execution trace. This is distinct from the 64 structural scenarios, the frozen parser corpus, and the historical Anthropic API runner. It does not require an Anthropic key.
 
 ## Run
 
@@ -17,15 +17,15 @@ Live runs consume the account's Codex allowance. Model selection is mandatory; r
 
 ## Isolation and evidence
 
-Each answer and judge gets a fresh Git fixture, HOME, and CODEX_HOME. Only fixture files are present in both arms; the treatment additionally gets the checkout's `skills/` under `.agents/skills/`. No project AGENTS.md, parent checkout instructions, user config, installed user skills, plugins, hooks, apps, web search, or subagents are loaded. Bundled skills are disabled. Hosts with admin-installed skills are rejected. Authentication is copied into a private temporary directory and deleted after the session; it is never written into results. Transport proxy and certificate settings are retained, while arbitrary environment credentials are not inherited. SIGINT and SIGTERM cancel the active child process group and clean temporary credentials. Do not terminate the parent runner with SIGKILL: like any abrupt process death, this can prevent temporary-directory cleanup.
+Each answer and judge gets a fresh Git fixture, HOME, and CODEX_HOME. The treatment copies `skills/brooks-lint/` to `.agents/skills/brooks-lint/` alongside the same task files. No project AGENTS.md, parent checkout instructions, user config, installed user skills, plugins, hooks, apps, web search, or subagents are loaded. Bundled skills are disabled. Hosts with admin-installed skills are rejected. Authentication is copied into a private temporary directory and deleted after the session; it is never written into results. Transport proxy and certificate settings are retained, while arbitrary environment credentials are not inherited. SIGINT and SIGTERM cancel the active child process group and clean temporary credentials. Do not terminate the parent runner with SIGKILL: like any abrupt process death, this can prevent temporary-directory cleanup.
 
-The runner captures `debug prompt-input` before execution and compares the complete developer-provided skill catalog with the expected six entries or an empty baseline catalog. Skill names in task or answer text are ignored. Both arms use the same explicit model and reasoning setting, with alternating arm order across cases/repetitions. Runs are serial, so load does not differ by arm. They use read-only sandboxing and approval mode `never`; the implementation negative control asks for code in the answer, not file edits.
+The runner captures `debug prompt-input` before execution and requires an empty automatic skill catalog in both arms. Skill names in task or answer text are ignored. Both arms use the same explicit model and reasoning setting, with alternating arm order across cases/repetitions. Runs are serial, so load does not differ by arm. They use read-only sandboxing and approval mode `never`; the implementation negative control asks for code in the answer, not file edits.
 
 Raw run directories contain prompt snapshots, JSONL events, stderr, final answers, judge outputs, `results.json`, and `summary.md`. Results record model, CLI version, fixture/skill/schema digests, trace hashes, observed reads, judgments, and errors. Snapshot paths contain ephemeral directories; inspect and sanitize raw artifacts before sharing. Credentials are excluded, but model-generated commands can still reveal host paths.
 
 ## What is measured
 
-- **Trigger:** a completed, successful `cat`, `head`, `tail`, `sed`, or `awk` content-read command that outputs a skill's SKILL.md frontmatter and Setup body. A promise to use a skill, a filename listing, or a metadata-only search is insufficient. This conservative trace proxy can miss alternate read tools and does not prove instruction adherence.
+- **Trigger:** a completed, successful `cat`, `head`, `tail`, `sed`, or `awk` command that reads a mode's `SKILL-MAIN.md` frontmatter and numbered workflow. The parser also accepts standalone entrypoint reads in archived runs. This trace proxy measures content reads.
 - **Completion:** the case's requested assessment or answer was actually delivered. A plan or background-agent claim is incomplete. Baseline prose does not need Brooks headings, codes, scores, or citations.
 - **Required-issue recall:** expected issues correctly identified divided by rubric issues. Clean controls have no expected issue and do not inflate recall.
 - **False-positive fraction:** unsupported defect claims divided by all asserted findings. Additional supported issues are allowed. Uncertain findings are counted separately; this is not a population false-positive rate.
@@ -44,6 +44,8 @@ Debt, health, sweep, large repositories, custom risks, other languages, multilin
 The runner follows the official [skill evaluation workflow](https://developers.openai.com/blog/eval-skills), [non-interactive CLI guidance](https://developers.openai.com/codex/noninteractive), and [skill discovery/configuration rules](https://developers.openai.com/codex/skills). The frozen parser benchmark remains unchanged.
 
 ## Initial pilot
+
+The archived runs below used natural-language skill selection before the explicit invocation policy.
 
 The [2026-11-04 exploratory comparison](../evals/codex/pilot-2026-11-04.md)
 archives the first complete seven-pair run, including answers, model judgments,

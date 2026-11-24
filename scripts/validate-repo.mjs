@@ -14,7 +14,7 @@ import {
   PRODUCTION_RISK_COUNT,
   TEST_RISK_COUNT,
 } from "./frontmatter.mjs";
-import { GUIDE_BY_MODE, VALID_MODES } from "./assemble-prompt.mjs";
+import { BUNDLE_NAME, MODES, VALID_MODES } from "./modes.mjs";
 import { versionRefs } from "./version-refs.mjs";
 import { coverageAnnouncement, coverageVerdict } from "./changelog-audit.mjs";
 import {
@@ -29,6 +29,8 @@ import { render as renderStarHistory, readStamps as readStarStamps } from "./gen
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
+const bundleDir = `skills/${BUNDLE_NAME}`;
+const sharedDir = `${bundleDir}/references`;
 
 function readText(relPath) {
   return readFileSync(path.join(root, relPath), "utf8").replace(/\r\n/g, "\n");
@@ -52,7 +54,7 @@ function check(condition, message) {
 const packageJson = readJson("package.json");
 const version = packageJson.version;
 
-const sourceCoverage = readText("skills/_shared/source-coverage.md");
+const sourceCoverage = readText(`${sharedDir}/source-coverage.md`);
 const books = parseFrontmatterBooks(sourceCoverage);
 const sourceCount = books?.length ?? 0;
 
@@ -158,10 +160,10 @@ function checkReadmeIntegrity() {
 }
 
 function checkConfigExamples() {
-  const commonMd = readText("skills/_shared/common.md");
+  const commonMd = readText(`${sharedDir}/common.md`);
   const exampleYaml = readText(".brooks-lint.example.yaml");
   const readme = readText("README.md");
-  check(commonMd.includes("- T5"), "skills/_shared/common.md should use T5 in the disable section of config examples");
+  check(commonMd.includes("- T5"), `${sharedDir}/common.md should use T5 in the disable section of config examples`);
   check(exampleYaml.includes("- T5"), ".brooks-lint.example.yaml should use T5 in the disable section");
   check(readme.includes("- T5"), "README.md configuration example should include T5 in the disable section");
   check(exampleYaml.includes("# suppress:"), ".brooks-lint.example.yaml should include a commented suppress example");
@@ -170,14 +172,14 @@ function checkConfigExamples() {
 function checkSourceInventory() {
   check(
     books !== null && books.length > 0,
-    "skills/_shared/source-coverage.md must have a books: frontmatter list",
+    `${sharedDir}/source-coverage.md must have a books: frontmatter list`,
   );
   if (!books) return;
 
   for (const title of books) {
     check(
       sourceCoverage.includes(`*${title}*`),
-      `skills/_shared/source-coverage.md should include a section for ${title}`,
+      `${sharedDir}/source-coverage.md should include a section for ${title}`,
     );
   }
 
@@ -186,35 +188,31 @@ function checkSourceInventory() {
   const bookSections = countBookSections(sourceCoverage);
   check(
     bookSections === books.length,
-    `skills/_shared/source-coverage.md frontmatter lists ${books.length} books but has ${bookSections} book sections (## Author — *Title*)`,
+    `${sharedDir}/source-coverage.md frontmatter lists ${books.length} books but has ${bookSections} book sections (## Author — *Title*)`,
   );
 }
 
 function checkSharedFramework() {
-  const commonMd = readText("skills/_shared/common.md");
-  check(commonMd.includes("source-coverage.md"), "skills/_shared/common.md should reference source-coverage.md");
+  const commonMd = readText(`${sharedDir}/common.md`);
+  check(commonMd.includes("source-coverage.md"), `${sharedDir}/common.md should reference source-coverage.md`);
 
-  const testDecayRisks = readText("skills/_shared/test-decay-risks.md");
+  const testDecayRisks = readText(`${sharedDir}/test-decay-risks.md`);
   check(testDecayRisks.includes("## Risk T3: Test Duplication"), "T3 definition missing from test-decay-risks.md");
   check(testDecayRisks.includes("## Risk T5: Coverage Illusion"), "T5 definition missing from test-decay-risks.md");
-  check(testDecayRisks.includes("### What Not to Flag"), "skills/_shared/test-decay-risks.md should include false-positive guidance");
+  check(testDecayRisks.includes("### What Not to Flag"), `${sharedDir}/test-decay-risks.md should include false-positive guidance`);
 
-  const decayRisks = readText("skills/_shared/decay-risks.md");
-  check(decayRisks.includes("### What Not to Flag"), "skills/_shared/decay-risks.md should include false-positive guidance");
+  const decayRisks = readText(`${sharedDir}/decay-risks.md`);
+  check(decayRisks.includes("### What Not to Flag"), `${sharedDir}/decay-risks.md should include false-positive guidance`);
 
   // Verify risk section counts are stable
   const productionRisks = countProductionRisks(decayRisks);
-  check(productionRisks === PRODUCTION_RISK_COUNT, `skills/_shared/decay-risks.md should define exactly ${PRODUCTION_RISK_COUNT} risks (found ${productionRisks})`);
+  check(productionRisks === PRODUCTION_RISK_COUNT, `${sharedDir}/decay-risks.md should define exactly ${PRODUCTION_RISK_COUNT} risks (found ${productionRisks})`);
 
   const testRisks = countTestRisks(testDecayRisks);
-  check(testRisks === TEST_RISK_COUNT, `skills/_shared/test-decay-risks.md should define exactly ${TEST_RISK_COUNT} test risks (found ${testRisks})`);
+  check(testRisks === TEST_RISK_COUNT, `${sharedDir}/test-decay-risks.md should define exactly ${TEST_RISK_COUNT} test risks (found ${testRisks})`);
 }
 
 // ── Step alignment ────────────────────────────────────────────────────────
-
-// Derived from the canonical mode registry so a new skill only has to be
-// declared once (in assemble-prompt.mjs) to be validated here.
-const SKILL_GUIDES = Object.values(GUIDE_BY_MODE);
 
 /** Steps in one guide must be present, unique, and numerically contiguous. */
 function checkGuideSteps(rel) {
@@ -251,54 +249,50 @@ function checkGuideSteps(rel) {
 }
 
 function checkStepAlignment() {
-  for (const [dir, ...guides] of SKILL_GUIDES) {
-    for (const guide of guides) checkGuideSteps(`skills/${dir}/${guide}`);
-
-    // SKILL.md Process section must exist and have at least one numbered item
-    const skillText = readText(`skills/${dir}/SKILL.md`);
-    const processMatch = skillText.match(/## Process\n([\s\S]*?)(?=\n##|$)/);
-    check(
-      processMatch !== null,
-      `skills/${dir}/SKILL.md has no ## Process section`,
-    );
-    if (processMatch) {
-      check(
-        /^\d+\./m.test(processMatch[1]),
-        `skills/${dir}/SKILL.md Process section has no numbered items`,
-      );
-    }
+  for (const [mode, { guides }] of Object.entries(MODES)) {
+    for (const guide of guides) checkGuideSteps(`${bundleDir}/subskills/${mode}/references/${guide}`);
   }
 }
 
+function checkEntrypoint(rel, name) {
+  const text = readText(rel);
+  const frontmatter = text.match(/^---\n([\s\S]*?)\n---\n/)?.[1] ?? "";
+  const workflow = text.split(/^## /m).find(section => section.startsWith("Workflow\n")) ?? "";
+  check(frontmatter.split("\n").includes(`name: ${name}`), `${rel} should declare the name ${name}`);
+  check(/^  skill_invocation_notation: >/m.test(frontmatter), `${rel} should declare the Imsight invocation notation`);
+  check(/^## Overview$/m.test(text), `${rel} should have an Overview section`);
+  check(/^\d+\. /m.test(workflow), `${rel} should have a numbered Workflow`);
+  check(/^## Guardrails\n/m.test(text), `${rel} should have a Guardrails section`);
+  return { text, frontmatter };
+}
+
 function checkSkillsContent() {
-  // Guard: _shared/ must never contain a SKILL.md — it is a shared library directory,
-  // not a skill. If one is added accidentally, Claude Code would register it as a broken skill.
-  let sharedHasSkillMd = false;
-  try {
-    readText("skills/_shared/SKILL.md");
-    sharedHasSkillMd = true;
-  } catch (_) { /* expected — file should not exist */ }
-  check(!sharedHasSkillMd, "skills/_shared/SKILL.md must not exist — _shared/ is a library, not a skill");
+  const entrypoints = readdirSync(path.join(root, "skills"), { recursive: true })
+    .filter(file => path.basename(file) === "SKILL.md");
+  check(
+    entrypoints.length === 1 && entrypoints[0] === path.join(BUNDLE_NAME, "SKILL.md"),
+    "skills/ should expose exactly one SKILL.md, at brooks-lint/SKILL.md",
+  );
+  const parent = checkEntrypoint(`${bundleDir}/SKILL.md`, BUNDLE_NAME);
+  check(/^disable-model-invocation: true$/m.test(parent.frontmatter), `${bundleDir}/SKILL.md should be manual-only`);
+  check(hasOpencodeSlashFlag(parent.text), `${bundleDir}/SKILL.md should opt into OpenCode's / menu`);
+  check(/^policy:\n  allow_implicit_invocation: false$/m.test(readText(`${bundleDir}/agents/openai.yaml`)),
+    `${bundleDir}/agents/openai.yaml should disable implicit invocation`);
+  const childDirs = readdirSync(path.join(root, bundleDir, "subskills"), { withFileTypes: true })
+    .filter(entry => entry.isDirectory()).map(entry => entry.name).sort();
+  check(childDirs.join(",") === [...VALID_MODES].sort().join(","), "Bundle subskills should match the mode registry");
 
-  for (const [dir, ...guides] of SKILL_GUIDES) {
-    const skillMd = readText(`skills/${dir}/SKILL.md`);
-    check(skillMd.includes("## Setup"), `skills/${dir}/SKILL.md should have a ## Setup section`);
-    check(skillMd.includes("## Process"), `skills/${dir}/SKILL.md should have a ## Process section`);
-
-    // Guard: SKILL.md frontmatter description must reference the current book count.
-    // Positive assertion — self-updates when sourceWord changes with the book inventory.
-    // Extract frontmatter only to avoid false positives from body text ("all six decay risks").
-    const frontmatterMatch = skillMd.match(/^---\n([\s\S]*?)\n---/);
-    const frontmatter = frontmatterMatch ? frontmatterMatch[1] : "";
-    check(
-      frontmatter.includes(`${sourceWord} classic`),
-      `skills/${dir}/SKILL.md frontmatter description should reference "${sourceWord} classic engineering books" — update stale book count`,
-    );
-
+  for (const [mode, { guides }] of Object.entries(MODES)) {
+    const dir = `${bundleDir}/subskills/${mode}`;
+    const entrypoint = `${dir}/SKILL-MAIN.md`;
+    const child = checkEntrypoint(entrypoint, mode);
+    check(child.text.includes(`${sourceWord} classic`), `${entrypoint} should reference the derived book count`);
+    check(parent.text.includes(`${BUNDLE_NAME}->${mode}`) && parent.text.includes(`subskills/${mode}/SKILL-MAIN.md`),
+      `${bundleDir}/SKILL.md should route ${mode} to its nested entrypoint`);
     for (const guide of guides) {
       check(
-        readText(`skills/${dir}/${guide}`).includes("Iron Law"),
-        `skills/${dir}/${guide} should reference the Iron Law`,
+        readText(`${dir}/references/${guide}`).includes("Iron Law"),
+        `${dir}/references/${guide} should reference the Iron Law`,
       );
     }
   }
@@ -400,30 +394,6 @@ function checkInstallerPlatforms() {
   }
 }
 
-// OpenCode v2 shadows nothing and auto-registers nothing: a skill reaches the
-// `/` menu only by opting in with metadata.opencode/slash. No other platform
-// reads the flag, so nothing else fails when a new skill ships without it —
-// this check is the only thing standing between a seventh skill and a silently
-// missing /brooks-* on OpenCode. Scans the directory rather than the mode
-// registry so an unregistered skill folder is caught too; _shared/ has no
-// SKILL.md and is skipped by construction.
-function checkOpencodeSlashFlag() {
-  const skillDirs = readdirSync(path.join(root, "skills"), { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .filter((dir) => existsSync(path.join(root, "skills", dir, "SKILL.md")))
-    .sort();
-
-  check(skillDirs.length > 0, "skills/ contains no SKILL.md — expected at least one skill");
-
-  for (const dir of skillDirs) {
-    check(
-      hasOpencodeSlashFlag(readText(`skills/${dir}/SKILL.md`)),
-      `skills/${dir}/SKILL.md frontmatter needs metadata: opencode/slash: "true" — without it the skill never appears in OpenCode's / menu`,
-    );
-  }
-}
-
 // assets/star-history.svg is a pure function of assets/star-history.json, so a
 // mismatch means the chart was hand-edited or the data moved without a redraw.
 // Re-rendering here needs no credentials, which is the point of committing the
@@ -486,7 +456,6 @@ checkContributing();
 checkAgentsDocs();
 checkPlatformDocs();
 checkInstallerPlatforms();
-checkOpencodeSlashFlag();
 checkSecurity();
 checkStarHistory();
 checkHookOutput();

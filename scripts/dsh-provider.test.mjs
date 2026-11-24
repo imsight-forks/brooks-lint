@@ -26,19 +26,17 @@ async function skill(root, name, raw) {
   return locator;
 }
 
-test("bundled provider discovers all six skills and loads their bodies and shared resources", async () => {
+test("bundled provider discovers one manual skill and loads all six subskills", async () => {
   const source = provider();
   const candidates = await source.list();
-  assert.deepEqual(candidates.map((item) => item.name), [
-    "brooks-audit", "brooks-debt", "brooks-health", "brooks-review", "brooks-sweep", "brooks-test",
-  ]);
+  assert.deepEqual(candidates.map((item) => item.name), ["brooks-lint"]);
   const root = fileURLToPath(new URL("../skills/", import.meta.url));
   for (const candidate of candidates) {
     assert.equal(candidate.provider, "brooks-lint");
     assert.equal(candidate.rank, 600);
     assert.equal(candidate.source, "bundled");
-    assert.deepEqual(candidate.invocation, { modelInvocable: true, userInvocable: true });
-    assert(candidate.description.includes("Do NOT trigger for:"));
+    assert.deepEqual(candidate.invocation, { modelInvocable: false, userInvocable: true });
+    assert.match(candidate.description, /explicit/i);
     assert.deepEqual(candidate.resourceBase, {
       kind: "directory", path: join(root, candidate.name).split(sep).join("/"),
     });
@@ -46,8 +44,13 @@ test("bundled provider discovers all six skills and loads their bodies and share
     const raw = await readFile(join(root, candidate.name, "SKILL.md"), "utf8");
     assert.equal(loaded.content, raw.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/u, "").trim());
     assert.deepEqual(loaded.resourceBase, candidate.resourceBase);
-    const shared = await readFile(resolve(loaded.resourceBase.path, "../_shared/common.md"), "utf8");
+    const shared = await readFile(resolve(loaded.resourceBase.path, "references/common.md"), "utf8");
     assert(shared.includes("The Iron Law"));
+    for (const mode of ["review", "audit", "debt", "test", "health", "sweep"]) {
+      const relative = `subskills/${mode}/SKILL-MAIN.md`;
+      assert(loaded.content.includes(relative));
+      assert((await readFile(resolve(loaded.resourceBase.path, relative), "utf8")).includes("## Workflow"));
+    }
   }
 });
 
@@ -59,6 +62,7 @@ test("custom roots skip directories without SKILL.md and non-directory entries",
   const source = provider({ assetRoot: root });
   const candidates = await source.list();
   assert.deepEqual(candidates.map((item) => item.name), ["custom"]);
+  assert.deepEqual(candidates[0].invocation, { modelInvocable: true, userInvocable: true });
   assert.equal((await source.get(candidates[0])).content, "Body");
 });
 

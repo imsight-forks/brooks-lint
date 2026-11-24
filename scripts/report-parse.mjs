@@ -1,7 +1,7 @@
 /**
  * Parse a brooks-lint Markdown report into structured findings.
  *
- * The report format is defined by the Report Template in skills/_shared/common.md:
+ * The report format is defined in skills/brooks-lint/references/common.md:
  * findings live under severity sub-headers (### 🔴 Critical / 🟡 Warning /
  * 🟢 Suggestion), each finding is a bold title line `**Risk Name — title**`
  * followed by Symptom / Source / Consequence / Remedy fields.

@@ -11,22 +11,18 @@ modes run with no conversion.
 ./scripts/install.sh antigravity --project   # this repo: ./.agent/skills
 
 # global
-curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- antigravity
+curl -fsSL https://raw.githubusercontent.com/imsight-forks/brooks-lint/main/scripts/install.sh | bash -s -- antigravity
 ./scripts/install.sh antigravity             # global: ~/.gemini/skills
 ```
 
-Prefer a manual copy? Clone the repo and `cp -r skills/* .agent/skills/` — the contents, not the
-`skills/` folder itself, so `_shared/` lands as a sibling of the `brooks-*` folders.
+For a manual installation, clone the repo and run `cp -r skills/brooks-lint .agent/skills/` to copy the complete bundle.
 
 ## Invoke
 
-Ask naturally ("review this PR", "audit the architecture") — the agent selects the matching skill from
-its `description`. `AGENTS.md` / `GEMINI.md` carry the Iron Law and Health Score rules.
+Select the `brooks-lint` skill explicitly in Antigravity, then give it a mode such as `brooks-lint->audit` and a scope. `AGENTS.md` and `GEMINI.md` describe the report and scoring conventions.
 
 ## Notes
 
-- **Flat layout** is mandatory (the installer guarantees it): `../_shared/` only resolves when
-  `_shared/` is a sibling of the `brooks-*` folders.
 - The project convention `.agent/skills/` is well documented; the **global** skills path
   (`~/.gemini/skills` vs a product subfolder) varies between sources — if the global install isn't
   discovered, use the project install. Please report what worked.

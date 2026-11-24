@@ -67,7 +67,7 @@ gated.
 |---------|:------:|:----:|:--:|:-------------:|:-------:|
 | Add a new skill | ✓ (via `new-skill` scaffold) | ✓ | ✓ | ✓ | — |
 | Edit skill / guide content | ✓ | if codes changed | ✓ | if `description` changed | — |
-| Edit `_shared/` framework | ✓ | if risk defs changed | ✓ | — | — |
+| Edit the shared framework | ✓ | if risk defs changed | ✓ | — | — |
 | Codex / maintenance configuration | — | — | ✓ | — | — |
 | Eval suite only | — | ✓ | ✓ | — | — |
 | Fix trigger descriptions | ✓ | — | ✓ | ✓ | — |
@@ -127,7 +127,7 @@ AGENTS.md harness change-log table.
 ## Test scenarios
 
 **Normal flow — "add a brooks-security skill":** Phase 1 selects author+eval+QA+audit.
-skill-author runs `new-skill brooks-security`, creates SKILL.md (with a sibling-carving
+skill-author runs `new-skill security`, creates a nested SKILL-MAIN.md (with a sibling-carving
 "Do NOT trigger for:" clause) + guide; eval-curator adds an S-code happy-path + a
 false-positive scenario; consistency-qa runs the gate → PASS; trigger-boundary-auditor
 confirms no collision with brooks-review/audit. Report lists files + PASS.

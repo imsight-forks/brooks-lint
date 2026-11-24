@@ -12,38 +12,35 @@ Six focused workflows for code review, architecture, technical debt, test qualit
 Published versions: [npm](https://www.npmjs.com/package/brooks-lint) · [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases)
 
 [Migration from 1.9.1 to 2.0.0](docs/migration-v2.md)
-brooks-lint is a collection of Agent Skills, shared guidance and small deterministic reporting tools. Your coding agent performs the diagnosis; the project supplies a repeatable workflow, risk vocabulary and reporting contract. It is not a static analyzer and it does not guarantee that a model finds every defect.
+brooks-lint bundles guidance and deterministic reporting tools in a single Agent Skill. Your coding agent performs the diagnosis; the project supplies a repeatable workflow, risk vocabulary and reporting contract. It is not a static analyzer and it does not guarantee that a model finds every defect.
 
 ## Quick start: Codex
 
 ```bash
-# Source checkout: Git + Bash
-git clone https://github.com/hyhmrright/brooks-lint.git
-cd brooks-lint
-bash scripts/install.sh codex
+npx skills add imsight-forks/brooks-lint --skill brooks-lint --agent codex
 ```
 
 ```text
-$brooks-review Review the current diff and identify supported maintainability risks.
-$brooks-health Assess this repository; distinguish missing evidence from clean dimensions.
+$brooks-lint brooks-lint->review Review the current diff and identify supported maintainability risks.
+$brooks-lint brooks-lint->health Assess this repository; distinguish missing evidence from clean dimensions.
 ```
 
-This installs the current source into the global Codex skills directory. Start a new session if skills are not discovered. To install into another project, run the installer by its absolute path from that project with `codex --project`. Keep `_shared` beside the six skill folders. See the [Codex guide](docs/codex-setup.md) for layout and capability checks.
+Run the install command in the project you want to use with Codex. Start a new session to refresh skill discovery. See the [Codex guide](docs/codex-setup.md) for install options.
 
 Install the latest published package with Node.js 20+: `npx brooks-lint@latest install codex`. See [getting started](docs/getting-started.md) for other installation targets.
 
 ## Choose the smallest workflow that fits
 
-| Skill | Use it for | Changes files? |
+| Mode route | Use it for | Changes files? |
 |---|---|---|
-| `$brooks-review` | A diff or specified code: governing contract, supported risks and a discriminating witness. | No |
-| `$brooks-audit` | Module dependencies, ownership and boundary integrity; onboarding also has a dedicated guide. | No |
-| `$brooks-debt` | Maintainability debt, priorities and a repayment plan. | No |
-| `$brooks-test` | An existing test suite: what failures its assertions do and do not detect. | No |
-| `$brooks-health` | An abbreviated four-dimension assessment and evidence-scoped dashboard. | No |
-| `$brooks-sweep` | Diagnose and apply authorized, verifiable repairs within a bounded scope. | Yes |
+| `brooks-lint->review` | A diff or specified code: governing contract, supported risks and a discriminating witness. | No |
+| `brooks-lint->audit` | Module dependencies, ownership and boundary integrity; onboarding also has a dedicated guide. | No |
+| `brooks-lint->debt` | Maintainability debt, priorities and a repayment plan. | No |
+| `brooks-lint->test` | An existing test suite: what failures its assertions do and do not detect. | No |
+| `brooks-lint->health` | An abbreviated four-dimension assessment and evidence-scoped dashboard. | No |
+| `brooks-lint->sweep` | Diagnose and apply authorized, verifiable repairs within a bounded scope. | Yes |
 
-Use `$brooks-review` in Codex; other hosts have their own invocation syntax. Natural-language discovery depends on the host and model. Health is a summary, not four exhaustive audits. Sweep requires editing and verification capabilities and respects existing authorization; it does not demand another approval merely because a change spans files.
+Select `$brooks-lint` explicitly in Codex and use the desired mode route. Health is a summary, not four exhaustive audits. Sweep requires editing and verification capabilities and respects existing authorization; it does not demand another approval merely because a change spans files.
 
 ## What a report means
 
@@ -51,9 +48,9 @@ A retained finding follows **Symptom → Source → Consequence → Remedy**: ob
 
 The score is a configured summary of retained findings, **not a probability of correctness**. Health uses one ledger for Code Quality, Architecture, Tech Debt and Test Quality. When execution is available and permitted, bundled Node tools calculate and finalize the report. A required dimension with missing decisive evidence is **unassessed**, so no numeric composite is emitted. Only PR quality with no diff is **skipped**, with its weight redistributed. An assessed dimension with no supported findings is different from an unknown dimension.
 
-The delivery helper checks that supplied output bytes equal the finalized report and match its receipt. It does not verify diagnostic truth, later UI rendering or transport. Without permitted tool execution, the guide requires explicit verification limits; it must not invent a tool receipt. [Ledger and tool contract](skills/brooks-health/score-ledger.md).
+The delivery helper checks that supplied output bytes equal the finalized report and match its receipt. It does not verify diagnostic truth, later UI rendering or transport. Without permitted tool execution, the guide requires explicit verification limits; it must not invent a tool receipt. [Ledger and tool contract](skills/brooks-lint/subskills/health/references/score-ledger.md).
 
-Sweep defaults to **three total repair rounds**, including the initial and Critical-only rounds. User time/tool budgets also apply. It reports a supported stop reason and unresolved work. A clean local scope can coexist with unknown broader dashboard dimensions. [Sweep guide](skills/brooks-sweep/sweep-guide.md).
+Sweep defaults to **three total repair rounds**, including the initial and Critical-only rounds. User time/tool budgets also apply. It reports a supported stop reason and unresolved work. A clean local scope can coexist with unknown broader dashboard dimensions. [Sweep guide](skills/brooks-lint/subskills/sweep/references/sweep-guide.md).
 
 ## Risk vocabulary
 
@@ -83,7 +80,7 @@ Sweep defaults to **three total repair rounds**, including the initial and Criti
 | *Working Effectively with Legacy Code* | Michael Feathers |
 | *xUnit Test Patterns* | Gerard Meszaros |
 
-The detailed [source coverage matrix](skills/_shared/source-coverage.md) records concepts, tradeoffs and false-positive guards. These risks are this project’s synthesis, not an official taxonomy authored jointly by the books’ writers.
+The detailed [source coverage matrix](skills/brooks-lint/references/source-coverage.md) records concepts, tradeoffs and false-positive guards. These risks are this project’s synthesis, not an official taxonomy authored jointly by the books’ writers.
 
 <a id="benchmark"></a>
 
@@ -114,12 +111,12 @@ These are starting prompts and intended deliverables, not additional benchmark w
 
 | Skill | A useful first task |
 |---|---|
-| `$brooks-review` | Review this diff against its contract; show a minimal input that distinguishes a defect from protected behavior. |
-| `$brooks-audit` | Trace this dependency across module boundaries; identify the owner of the violated rule. |
-| `$brooks-debt` | Rank these maintenance problems by change impact; propose the smallest repayment step. |
-| `$brooks-test` | Show a faulty implementation these tests would accept, and the assertion that distinguishes it. |
-| `$brooks-health` | Assess this scope with one finding ledger; separate supported findings, clean dimensions and unknowns. |
-| `$brooks-sweep` | Diagnose and repair this authorized scope within three total rounds; run available checks and report what remains. |
+| `brooks-lint->review` | Review this diff against its contract; show a minimal input that distinguishes a defect from protected behavior. |
+| `brooks-lint->audit` | Trace this dependency across module boundaries; identify the owner of the violated rule. |
+| `brooks-lint->debt` | Rank these maintenance problems by change impact; propose the smallest repayment step. |
+| `brooks-lint->test` | Show a faulty implementation these tests would accept, and the assertion that distinguishes it. |
+| `brooks-lint->health` | Assess this scope with one finding ledger; separate supported findings, clean dimensions and unknowns. |
+| `brooks-lint->sweep` | Diagnose and repair this authorized scope within three total rounds; run available checks and report what remains. |
 
 These studies use related development-authored cases and non-independent grading. Repeated answers are not independent projects. Static supplied instructions do not test native skill discovery, all models or the whole current 2.0.0 source tree.
 
@@ -162,7 +159,7 @@ sweep:
 #   - T5
 ```
 
-Copy [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml). The shared contract defines `strictness`, `severity`, `ignore`, `focus`/`disable`, custom `Cx` risks and scoped suppression. Disabling T5 intentionally omits its diagnosis; T5 is not merely a code-coverage percentage check. [Configuration and report contract](skills/_shared/common.md).
+Copy [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml). The shared contract defines `strictness`, `severity`, `ignore`, `focus`/`disable`, custom `Cx` risks and scoped suppression. Disabling T5 intentionally omits its diagnosis; T5 is not merely a code-coverage percentage check. [Configuration and report contract](skills/brooks-lint/references/common.md).
 
 ## CI integration is a separate path
 

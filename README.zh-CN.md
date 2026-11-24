@@ -12,23 +12,20 @@
 已发布版本：[npm](https://www.npmjs.com/package/brooks-lint) · [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases)
 
 [从 1.9.1 迁移到 2.0.0](docs/migration-v2.md)
-brooks-lint 由 Agent Skills、共享指导和小型确定性报告工具组成。诊断由你的编码代理执行；项目提供工作流、风险分类和报告约定。它不是静态分析器，也不保证模型能发现所有缺陷。
+brooks-lint 将共享规则和确定性报告工具打包成一个技能。诊断由你的编码代理执行；项目提供工作流、风险分类和报告约定。它不是静态分析器，也不保证模型能发现所有缺陷。
 
 ## 从 Codex 开始
 
 ```bash
-# Source checkout: Git + Bash
-git clone https://github.com/hyhmrright/brooks-lint.git
-cd brooks-lint
-bash scripts/install.sh codex
+npx skills add imsight-forks/brooks-lint --skill brooks-lint --agent codex
 ```
 
 ```text
-$brooks-review Review the current diff and identify supported maintainability risks.
-$brooks-health Assess this repository; distinguish missing evidence from clean dimensions.
+$brooks-lint brooks-lint->review Review the current diff and identify supported maintainability risks.
+$brooks-lint brooks-lint->health Assess this repository; distinguish missing evidence from clean dimensions.
 ```
 
-以上命令将当前源码安装到 Codex 的全局技能目录。如果没有发现技能，请启动新会话。项目级安装应在目标项目中通过绝对路径执行安装脚本，并使用 `codex --project`。保留 `_shared` 与六个技能目录的同级关系。详见 [Codex 指南](docs/codex-setup.md)。
+在目标 Codex 项目中执行安装命令。开启新会话可重新发现技能。详见 [Codex 指南](docs/codex-setup.md)。
 
 使用 Node.js 20+ 安装最新发布版本：`npx brooks-lint@latest install codex`。其他安装目标见[入门指南](docs/getting-started.md)。
 
@@ -36,14 +33,14 @@ $brooks-health Assess this repository; distinguish missing evidence from clean d
 
 | 技能 | 适用任务 | 是否修改文件？ |
 |---|---|---|
-| `$brooks-review` | 审查 diff 或指定代码：契约、证据支持的风险及区分性见证。 | 否 |
-| `$brooks-audit` | 模块依赖、职责归属和边界完整性；另有团队入门指南。 | 否 |
-| `$brooks-debt` | 识别维护债务、排序并制定偿还计划。 | 否 |
-| `$brooks-test` | 审查已有测试：断言能检测和遗漏哪些失败。 | 否 |
-| `$brooks-health` | 四个维度的简要评估和有证据范围限制的看板。 | 否 |
-| `$brooks-sweep` | 在限定范围内诊断并执行已授权、可验证的修复。 | 是 |
+| `brooks-lint->review` | 审查 diff 或指定代码：契约、证据支持的风险及区分性见证。 | 否 |
+| `brooks-lint->audit` | 模块依赖、职责归属和边界完整性；另有团队入门指南。 | 否 |
+| `brooks-lint->debt` | 识别维护债务、排序并制定偿还计划。 | 否 |
+| `brooks-lint->test` | 审查已有测试：断言能检测和遗漏哪些失败。 | 否 |
+| `brooks-lint->health` | 四个维度的简要评估和有证据范围限制的看板。 | 否 |
+| `brooks-lint->sweep` | 在限定范围内诊断并执行已授权、可验证的修复。 | 是 |
 
-Codex 使用 `$brooks-review`；其他宿主使用自己的调用方式。自然语言触发取决于宿主和模型。Health 是摘要，不是四次穷尽式审计。Sweep 需要编辑和验证能力，并沿用已有授权；不会仅因修改多个文件就再次要求确认。
+在 Codex 中显式调用 `$brooks-lint` 并指定模式。Health 是摘要，不是四次穷尽式审计。Sweep 需要编辑和验证能力，并沿用已有授权；不会仅因修改多个文件就再次要求确认。
 
 ## 如何理解报告
 
@@ -51,9 +48,9 @@ Codex 使用 `$brooks-review`；其他宿主使用自己的调用方式。自然
 
 分数是按配置汇总已保留问题的结果，**不是代码正确的概率**。Health 从同一份清单计算代码质量、架构、技术债和测试质量。允许执行工具时，随附 Node 工具生成分数并定稿。必要维度缺少决定性证据时标为 **unassessed**，不输出数值综合分。仅无 diff 的 PR 维度可以 **skipped** 并重新分配权重。已评估且未发现问题不等于未知。
 
-交付工具检查提供的输出字节是否与定稿和凭据一致，不验证诊断正确性、后续界面渲染或传输。无法执行工具时必须说明验证限制，不得虚构凭据。详见[评分清单与工具约定](skills/brooks-health/score-ledger.md)。
+交付工具检查提供的输出字节是否与定稿和凭据一致，不验证诊断正确性、后续界面渲染或传输。无法执行工具时必须说明验证限制，不得虚构凭据。详见[评分清单与工具约定](skills/brooks-lint/subskills/health/references/score-ledger.md)。
 
-Sweep 默认最多 **三轮修复总计**，包括首轮及仅处理 Critical 的轮次；同时遵守用户的时间和工具预算。停止时报告有证据支持的原因与未解决项。局部范围已干净，可以与更广维度仍未知同时成立。详见 [Sweep 指南](skills/brooks-sweep/sweep-guide.md)。
+Sweep 默认最多 **三轮修复总计**，包括首轮及仅处理 Critical 的轮次；同时遵守用户的时间和工具预算。停止时报告有证据支持的原因与未解决项。局部范围已干净，可以与更广维度仍未知同时成立。详见 [Sweep 指南](skills/brooks-lint/subskills/sweep/references/sweep-guide.md)。
 
 ## 风险分类
 
@@ -83,7 +80,7 @@ Sweep 默认最多 **三轮修复总计**，包括首轮及仅处理 Critical �
 | *Working Effectively with Legacy Code* | Michael Feathers |
 | *xUnit Test Patterns* | Gerard Meszaros |
 
-[来源映射](skills/_shared/source-coverage.md)记录概念、权衡和误报保护。这套风险分类是项目对书中思想的综合，不是这些作者共同制定的官方分类。
+[来源映射](skills/brooks-lint/references/source-coverage.md)记录概念、权衡和误报保护。这套风险分类是项目对书中思想的综合，不是这些作者共同制定的官方分类。
 
 <a id="benchmark"></a>
 
@@ -114,12 +111,12 @@ Sweep 默认最多 **三轮修复总计**，包括首轮及仅处理 Critical �
 
 | 技能 | 值得先尝试的任务 |
 |---|---|
-| `$brooks-review` | 按契约审查这份 diff，给出能区分缺陷与受保护行为的最小输入。 |
-| `$brooks-audit` | 沿模块边界追踪这条依赖，指出被违反的规则及其归属。 |
-| `$brooks-debt` | 按变更影响排列这些维护问题，给出最小偿还步骤。 |
-| `$brooks-test` | 展示一种现有测试会放过的错误实现，以及能区分它的断言。 |
-| `$brooks-health` | 用一份发现清单评估这个范围，区分有依据的问题、无发现维度和未知项。 |
-| `$brooks-sweep` | 在最多三轮内诊断并修复这个已授权范围，运行可用检查，报告剩余问题。 |
+| `brooks-lint->review` | 按契约审查这份 diff，给出能区分缺陷与受保护行为的最小输入。 |
+| `brooks-lint->audit` | 沿模块边界追踪这条依赖，指出被违反的规则及其归属。 |
+| `brooks-lint->debt` | 按变更影响排列这些维护问题，给出最小偿还步骤。 |
+| `brooks-lint->test` | 展示一种现有测试会放过的错误实现，以及能区分它的断言。 |
+| `brooks-lint->health` | 用一份发现清单评估这个范围，区分有依据的问题、无发现维度和未知项。 |
+| `brooks-lint->sweep` | 在最多三轮内诊断并修复这个已授权范围，运行可用检查，报告剩余问题。 |
 
 这些研究使用相关的开发自编案例和非独立评分，重复回答不是独立项目。静态提供指导不验证原生技能发现、所有模型或当前 2.0.0 的全部源码。
 
@@ -162,7 +159,7 @@ sweep:
 #   - T5
 ```
 
-从 [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml) 开始。共享约定定义严格度、严重度覆盖、忽略路径、`focus`/`disable`、自定义 `Cx` 风险和范围化抑制。禁用 T5 会主动省略其诊断；T5 不只是覆盖率百分比检查。详见[配置与报告约定](skills/_shared/common.md)。
+从 [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml) 开始。共享约定定义严格度、严重度覆盖、忽略路径、`focus`/`disable`、自定义 `Cx` 风险和范围化抑制。禁用 T5 会主动省略其诊断；T5 不只是覆盖率百分比检查。详见[配置与报告约定](skills/brooks-lint/references/common.md)。
 
 ## CI 是另一条执行路径
 

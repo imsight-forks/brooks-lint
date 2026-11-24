@@ -6,7 +6,8 @@ import { tmpdir, homedir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
-import { ARMS, SKILLS, digest, validateCases, analyzeTrace, judgePrompt, validateJudgment, summarize, renderSummary } from './codex-eval.mjs';
+import { ARMS, digest, validateCases, analyzeTrace, judgePrompt, validateJudgment, summarize, renderSummary } from './codex-eval.mjs';
+import { BUNDLE_NAME, MODES, VALID_MODES } from './modes.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FIXTURE = path.join(ROOT, 'evals/codex/cases.json');
@@ -54,18 +55,24 @@ export function discoveredSkills(context) {
 }
 export function materialize(dir, c, arm) {
   for (const f of c.files) { const target = path.join(dir, f.path); mkdirSync(path.dirname(target), { recursive: true }); writeFileSync(target, f.content); }
-  if (arm === 'with') cpSync(path.join(ROOT, 'skills'), path.join(dir, '.agents/skills'), { recursive: true });
+  if (arm === 'with') cpSync(path.join(ROOT, 'skills', BUNDLE_NAME), path.join(dir, '.agents/skills', BUNDLE_NAME), { recursive: true });
   for (const args of [['init', '-q'], ['add', '.'], ['-c', 'user.name=Behavior Eval', '-c', 'user.email=eval@example.invalid', 'commit', '--allow-empty', '-qm', 'Fixture']]) {
     const result = spawnSync('git', args, { cwd: dir, env: { PATH: process.env.PATH, HOME: dir, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null' }, encoding: 'utf8' });
     if (result.status !== 0) throw new Error(`Fixture git failed: ${result.stderr}`);
   }
 }
-function skillDigest(dir = path.join(ROOT, 'skills')) {
+function skillDigest(dir = path.join(ROOT, 'skills', BUNDLE_NAME)) {
   const inventory = [];
   function visit(folder) { for (const entry of readdirSync(folder, { withFileTypes: true }).sort((a,b) => a.name.localeCompare(b.name))) { const p = path.join(folder, entry.name); if (entry.isDirectory()) visit(p); else inventory.push([path.relative(dir, p), digest(readFileSync(p))]); } }
   visit(dir); return digest(JSON.stringify(inventory));
 }
 export async function session({ c, arm, prompt, judge = false, options, destination }) {
+  const mode = !judge && arm === 'with'
+    ? VALID_MODES.find(name => MODES[name].directory === c.expected_skill)
+    : undefined;
+  const sessionPrompt = mode
+    ? `Use $${BUNDLE_NAME} and invoke ${BUNDLE_NAME}->${mode}. Read .agents/skills/${BUNDLE_NAME}/SKILL.md and follow its route.\n\n${prompt}`
+    : prompt;
   const temp = mkdtempSync(path.join(tmpdir(), 'brooks-codex-eval-'));
   chmodSync(temp, 0o700);
   try {
@@ -78,18 +85,17 @@ export async function session({ c, arm, prompt, judge = false, options, destinat
     if (judge) settings.push('features.shell_tool=false');
     const overrides = settings.flatMap(s => ['-c', s]);
     const base = ['--no-daemon', '-a', 'never', '-C', repo, '-m', options.model, ...overrides];
-    const snapshot = await runProcess(options.codex, [...base, 'debug', 'prompt-input', prompt], { env, cwd: repo, timeout: options.timeout, signal: options.signal });
+    const snapshot = await runProcess(options.codex, [...base, 'debug', 'prompt-input', sessionPrompt], { env, cwd: repo, timeout: options.timeout, signal: options.signal });
     if (snapshot.code !== 0 || snapshot.timedOut) throw new Error('Prompt isolation preflight failed');
     const context = JSON.parse(snapshot.stdout);
     const discovered = discoveredSkills(context);
-    const wanted = !judge && arm === 'with' ? [...SKILLS].sort() : [];
-    if (JSON.stringify(discovered) !== JSON.stringify(wanted)) throw new Error(`Skill isolation failed: wanted ${wanted.join(',')}; discovered ${discovered.join(',')}`);
+    if (discovered.length) throw new Error(`Skill isolation failed. Unexpected automatic skills ${discovered.join(', ')}.`);
     writeFileSync(path.join(destination, 'prompt-input.json'), snapshot.stdout);
     const last = path.join(temp, 'answer.txt');
     const args = [...base, 'exec', '--json', '--ephemeral', '--ignore-user-config', '--ignore-rules', '--skip-git-repo-check', '-s', 'read-only', '--output-last-message', last];
     if (judge) args.push('--output-schema', SCHEMA);
     args.push('-');
-    const execution = await runProcess(options.codex, args, { env, cwd: repo, input: prompt, timeout: options.timeout, signal: options.signal });
+    const execution = await runProcess(options.codex, args, { env, cwd: repo, input: sessionPrompt, timeout: options.timeout, signal: options.signal });
     writeFileSync(path.join(destination, 'events.jsonl'), execution.stdout);
     writeFileSync(path.join(destination, 'stderr.txt'), execution.stderr);
     const trace = analyzeTrace(execution.stdout);
@@ -97,7 +103,7 @@ export async function session({ c, arm, prompt, judge = false, options, destinat
     const answer = readFileSync(last, 'utf8').trim();
     if (!answer) throw new Error('Empty final answer');
     writeFileSync(path.join(destination, 'answer.txt'), answer);
-    return { answer, trace, trace_sha256: digest(execution.stdout), prompt_sha256: digest(prompt), discovered_skills: discovered };
+    return { answer, trace, trace_sha256: digest(execution.stdout), prompt_sha256: digest(sessionPrompt), discovered_skills: discovered };
   } finally { rmSync(temp, { recursive: true, force: true }); }
 }
 

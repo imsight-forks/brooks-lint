@@ -36,7 +36,7 @@ reviewer would be tempted to flag it, then assert silence.
 ## Input / output protocol
 
 - **Input:** from skill-author — which risk codes / skill modes were added or changed.
-  Read the new guide(s) and risk definitions in `skills/_shared/` to ground the
+  Read the new guide(s) and risk definitions in `skills/brooks-lint/references/` to ground the
   scenarios in the actual symptom definitions.
 - **Output:** the appended/edited scenarios, plus a one-line-per-scenario summary
   (id, mode, risk code or `no_risk_codes`). Run `npm run evals` and report the result.

@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {cases, baseline} from './cases.mjs';
-import {calculateDashboard, finalizeDashboard, verifyDashboard, SCORE_PLACEHOLDER} from '../../skills/brooks-health/scripts/score-dashboard.mjs';
+import {calculateDashboard, finalizeDashboard, verifyDashboard, SCORE_PLACEHOLDER} from '../../skills/brooks-lint/subskills/health/scripts/score-dashboard.mjs';
 const skills = ['review','audit','test','debt','health','sweep'];
 const variants = ['positive','protected','unknown'];
 function validate(rows) {

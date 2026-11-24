@@ -12,23 +12,20 @@
 공개 버전: [npm](https://www.npmjs.com/package/brooks-lint) · [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases)
 
 [1.9.1에서 2.0.0으로 마이그레이션](docs/migration-v2.md)
-brooks-lint는 Agent Skills, 공통 지침, 작은 결정적 보고 도구의 모음입니다. 진단은 사용자의 코딩 에이전트가 수행합니다. 정적 분석기가 아니며 모델이 모든 결함을 찾는다고 보장하지 않습니다.
+brooks-lint는 공통 지침과 결정적 보고 도구를 하나의 스킬로 묶습니다. 진단은 사용자의 코딩 에이전트가 수행합니다. 정적 분석기가 아니며 모델이 모든 결함을 찾는다고 보장하지 않습니다.
 
 ## Codex로 시작하기
 
 ```bash
-# Source checkout: Git + Bash
-git clone https://github.com/hyhmrright/brooks-lint.git
-cd brooks-lint
-bash scripts/install.sh codex
+npx skills add imsight-forks/brooks-lint --skill brooks-lint --agent codex
 ```
 
 ```text
-$brooks-review Review the current diff and identify supported maintainability risks.
-$brooks-health Assess this repository; distinguish missing evidence from clean dimensions.
+$brooks-lint brooks-lint->review Review the current diff and identify supported maintainability risks.
+$brooks-lint brooks-lint->health Assess this repository; distinguish missing evidence from clean dimensions.
 ```
 
-현재 소스를 Codex 전역 스킬 디렉터리에 설치합니다. 인식되지 않으면 새 세션을 시작하세요. 프로젝트 설치는 대상 프로젝트에서 스크립트의 절대 경로와 `codex --project`를 사용합니다. `_shared`를 여섯 스킬 폴더와 같은 깊이에 두세요. [Codex 안내](docs/codex-setup.md).
+Codex에서 사용할 프로젝트에서 설치 명령을 실행하세요. 새 세션을 시작하면 스킬을 다시 검색합니다. [Codex 안내](docs/codex-setup.md).
 
 Node.js 20+에서 최신 공개 버전을 설치하려면: `npx brooks-lint@latest install codex`. 다른 설치 대상은 [시작 안내](docs/getting-started.md)를 참고하세요.
 
@@ -36,14 +33,14 @@ Node.js 20+에서 최신 공개 버전을 설치하려면: `npx brooks-lint@late
 
 | 스킬 | 용도 | 파일 수정 |
 |---|---|---|
-| `$brooks-review` | diff 또는 지정 코드의 계약, 근거 있는 위험과 동작을 구별하는 예시. | 아니요 |
-| `$brooks-audit` | 모듈 의존성, 책임과 경계. 별도 온보딩 안내도 제공합니다. | 아니요 |
-| `$brooks-debt` | 유지보수 부채의 분류, 우선순위와 상환 계획. | 아니요 |
-| `$brooks-test` | 기존 테스트의 단언이 탐지하거나 놓치는 실패. | 아니요 |
-| `$brooks-health` | 네 차원의 간략 평가와 증거 범위를 명시한 대시보드. | 아니요 |
-| `$brooks-sweep` | 제한한 범위에서 진단 후 승인되고 검증 가능한 수정. | 예 |
+| `brooks-lint->review` | diff 또는 지정 코드의 계약, 근거 있는 위험과 동작을 구별하는 예시. | 아니요 |
+| `brooks-lint->audit` | 모듈 의존성, 책임과 경계. 별도 온보딩 안내도 제공합니다. | 아니요 |
+| `brooks-lint->debt` | 유지보수 부채의 분류, 우선순위와 상환 계획. | 아니요 |
+| `brooks-lint->test` | 기존 테스트의 단언이 탐지하거나 놓치는 실패. | 아니요 |
+| `brooks-lint->health` | 네 차원의 간략 평가와 증거 범위를 명시한 대시보드. | 아니요 |
+| `brooks-lint->sweep` | 제한한 범위에서 진단 후 승인되고 검증 가능한 수정. | 예 |
 
-Codex에서는 `$brooks-review`를 사용합니다. 자연어 스킬 발견은 호스트와 모델에 달려 있습니다. Health는 네 번의 완전한 감사를 대신하지 않습니다. Sweep은 편집·검증 기능이 필요하며 기존 승인을 존중합니다. 여러 파일이라는 이유만으로 승인을 다시 묻지 않습니다.
+Codex에서 `$brooks-lint`를 명시적으로 호출하고 모드를 지정합니다. Health는 네 번의 완전한 감사를 대신하지 않습니다. Sweep은 편집·검증 기능이 필요하며 기존 승인을 존중합니다. 여러 파일이라는 이유만으로 승인을 다시 묻지 않습니다.
 
 ## 보고서 해석
 
@@ -51,9 +48,9 @@ Codex에서는 `$brooks-review`를 사용합니다. 자연어 스킬 발견은 �
 
 점수는 확정된 발견의 설정별 합계이며 **정확성의 확률이 아닙니다**. Health는 단일 장부로 코드 품질·아키텍처·부채·테스트를 처리합니다. 실행이 허용되면 Node 도구가 계산하고 보고서를 확정합니다. 필수 차원에 결정적 증거가 없으면 **unassessed**로 표시하며 수치 종합점을 내지 않습니다. diff가 없는 PR만 **skipped**로 처리하고 가중치를 재분배합니다. 미발견과 미평가는 다릅니다.
 
-전달 도구는 제공된 출력 바이트가 확정 보고서 및 영수증과 일치하는지 검사합니다. 진단의 참 여부, 이후 UI 렌더링이나 전송은 검증하지 않습니다. 실행이 불가하면 한계를 명시하고 영수증을 만들어내지 않습니다. [장부 및 도구 계약](skills/brooks-health/score-ledger.md).
+전달 도구는 제공된 출력 바이트가 확정 보고서 및 영수증과 일치하는지 검사합니다. 진단의 참 여부, 이후 UI 렌더링이나 전송은 검증하지 않습니다. 실행이 불가하면 한계를 명시하고 영수증을 만들어내지 않습니다. [장부 및 도구 계약](skills/brooks-lint/subskills/health/references/score-ledger.md).
 
-Sweep은 최초 및 Critical 전용 라운드를 포함해 기본 **총 세 번의 수정 라운드**로 제한됩니다. 사용자 시간·도구 예산도 따릅니다. 중단 근거와 미해결 사항을 보고하며, 국소 범위가 깨끗해도 더 넓은 차원은 미평가일 수 있습니다. [안내](skills/brooks-sweep/sweep-guide.md).
+Sweep은 최초 및 Critical 전용 라운드를 포함해 기본 **총 세 번의 수정 라운드**로 제한됩니다. 사용자 시간·도구 예산도 따릅니다. 중단 근거와 미해결 사항을 보고하며, 국소 범위가 깨끗해도 더 넓은 차원은 미평가일 수 있습니다. [안내](skills/brooks-lint/subskills/sweep/references/sweep-guide.md).
 
 ## 위험 분류
 
@@ -83,7 +80,7 @@ Sweep은 최초 및 Critical 전용 라운드를 포함해 기본 **총 세 번�
 | *Working Effectively with Legacy Code* | Michael Feathers |
 | *xUnit Test Patterns* | Gerard Meszaros |
 
-[출처 대응표](skills/_shared/source-coverage.md)에 개념, 절충과 오탐 방지 조건이 있습니다. 분류는 프로젝트의 종합이며 저자들의 공동 공식 분류가 아닙니다.
+[출처 대응표](skills/brooks-lint/references/source-coverage.md)에 개념, 절충과 오탐 방지 조건이 있습니다. 분류는 프로젝트의 종합이며 저자들의 공동 공식 분류가 아닙니다.
 
 <a id="benchmark"></a>
 
@@ -114,12 +111,12 @@ Sweep은 최초 및 Critical 전용 라운드를 포함해 기본 **총 세 번�
 
 | 스킬 | 처음 시도할 작업 |
 |---|---|
-| `$brooks-review` | 이 diff를 계약에 따라 검토하고 결함과 보호할 동작을 구분하는 최소 입력을 보여 줘. |
-| `$brooks-audit` | 모듈 경계를 넘는 의존성을 추적하고 위반한 규칙과 소유자를 밝혀 줘. |
-| `$brooks-debt` | 변경 영향에 따라 유지보수 문제의 우선순위를 정하고 최소 상환 단계를 제안해 줘. |
-| `$brooks-test` | 현재 테스트가 통과시키는 잘못된 구현과 이를 구분할 단언을 보여 줘. |
-| `$brooks-health` | 하나의 발견 원장으로 이 범위를 평가하고 근거 있는 문제, 발견 없음, 미확인을 구분해 줘. |
-| `$brooks-sweep` | 승인된 범위를 총 3회 이내로 진단·수정하고 가능한 검증을 실행한 뒤 잔여 문제를 보고해 줘. |
+| `brooks-lint->review` | 이 diff를 계약에 따라 검토하고 결함과 보호할 동작을 구분하는 최소 입력을 보여 줘. |
+| `brooks-lint->audit` | 모듈 경계를 넘는 의존성을 추적하고 위반한 규칙과 소유자를 밝혀 줘. |
+| `brooks-lint->debt` | 변경 영향에 따라 유지보수 문제의 우선순위를 정하고 최소 상환 단계를 제안해 줘. |
+| `brooks-lint->test` | 현재 테스트가 통과시키는 잘못된 구현과 이를 구분할 단언을 보여 줘. |
+| `brooks-lint->health` | 하나의 발견 원장으로 이 범위를 평가하고 근거 있는 문제, 발견 없음, 미확인을 구분해 줘. |
+| `brooks-lint->sweep` | 승인된 범위를 총 3회 이내로 진단·수정하고 가능한 검증을 실행한 뒤 잔여 문제를 보고해 줘. |
 
 관련된 개발용 자체 사례와 비독립 채점을 사용합니다. 반복 응답은 독립 프로젝트가 아닙니다. 정적으로 제공한 지침은 네이티브 스킬 발견, 모든 모델 또는 현재2.0.0 전체를 검증하지 않습니다.
 
@@ -162,7 +159,7 @@ sweep:
 #   - T5
 ```
 
-[설정 예시](.brooks-lint.example.yaml)를 참고하세요. 엄격도, 심각도, 경로 제외, `focus`/`disable`, 사용자 `Cx` 위험과 범위별 억제를 설정합니다. T5를 끄면 해당 진단을 생략합니다. T5는 커버리지 백분율만 의미하지 않습니다. [공통 계약](skills/_shared/common.md).
+[설정 예시](.brooks-lint.example.yaml)를 참고하세요. 엄격도, 심각도, 경로 제외, `focus`/`disable`, 사용자 `Cx` 위험과 범위별 억제를 설정합니다. T5를 끄면 해당 진단을 생략합니다. T5는 커버리지 백분율만 의미하지 않습니다. [공통 계약](skills/brooks-lint/references/common.md).
 
 ## CI는 별도 실행 경로
 

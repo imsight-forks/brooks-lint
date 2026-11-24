@@ -8,7 +8,7 @@ zero code.
 
 ### 1. Add a finding to an existing decay risk (easiest)
 
-Edit `skills/_shared/decay-risks.md` or `skills/_shared/test-decay-risks.md`.
+Edit `skills/brooks-lint/references/decay-risks.md` or `skills/brooks-lint/references/test-decay-risks.md`.
 Each risk has a `Symptoms` list and a `Sources` table. You can:
 
 - Add a new symptom pattern you've seen in real codebases
@@ -24,18 +24,18 @@ The guide files define how Claude analyzes each scenario:
 
 | File | What it controls |
 |------|-----------------|
-| `skills/brooks-review/pr-review-guide.md` | How PR reviews are structured (incl. Step 7 Quick Test Check) |
-| `skills/brooks-audit/architecture-guide.md` | How architecture audits run |
-| `skills/brooks-debt/debt-guide.md` | How tech debt is classified and scored |
-| `skills/brooks-test/test-guide.md` | How test quality reviews run |
-| `skills/brooks-health/health-guide.md` | How the health dashboard aggregates scores across all four dimensions |
-| `skills/brooks-sweep/sweep-guide.md` | How the full sweep classifies, applies, and reverts fixes |
-| `skills/brooks-audit/onboarding-guide.md` | How the codebase tour (onboarding mode) is produced |
-| `skills/_shared/test-decay-risks.md` | Six test-space decay risks with book citations |
+| `skills/brooks-lint/subskills/review/references/pr-review-guide.md` | How PR reviews are structured (incl. Step 7 Quick Test Check) |
+| `skills/brooks-lint/subskills/audit/references/architecture-guide.md` | How architecture audits run |
+| `skills/brooks-lint/subskills/debt/references/debt-guide.md` | How tech debt is classified and scored |
+| `skills/brooks-lint/subskills/test/references/test-guide.md` | How test quality reviews run |
+| `skills/brooks-lint/subskills/health/references/health-guide.md` | How the health dashboard aggregates scores across all four dimensions |
+| `skills/brooks-lint/subskills/sweep/references/sweep-guide.md` | How the full sweep classifies, applies, and reverts fixes |
+| `skills/brooks-lint/subskills/audit/references/onboarding-guide.md` | How the codebase tour (onboarding mode) is produced |
+| `skills/brooks-lint/references/test-decay-risks.md` | Six test-space decay risks with book citations |
 
 Better heuristics here mean better reviews for every user. If you find the skill
 misses something important or produces a finding that's consistently wrong, the
-fix is almost always in one of these files or in `skills/_shared/source-coverage.md`,
+fix is almost always in one of these files or in `skills/brooks-lint/references/source-coverage.md`,
 which captures book-level scope, exceptions, and tradeoffs.
 
 ### 3. Add an eval test case (most impactful)
@@ -81,8 +81,8 @@ and what it produces after. Even a screenshot or paste of the output is enough.
 Adding an entirely new risk category (e.g., R7 or T7) requires touching six places.
 Run `npm run validate` and `npm run evals` after each step to confirm no drift:
 
-1. **`skills/_shared/decay-risks.md`** or **`test-decay-risks.md`** — add the full risk definition (Diagnostic Question, Symptoms, Sources table, Severity Guide, What Not to Flag)
-2. **`skills/_shared/source-coverage.md`** — add the new risk to the relevant book sections under "Encoded today"
+1. **`skills/brooks-lint/references/decay-risks.md`** or **`test-decay-risks.md`** — add the full risk definition (Diagnostic Question, Symptoms, Sources table, Severity Guide, What Not to Flag)
+2. **`skills/brooks-lint/references/source-coverage.md`** — add the new risk to the relevant book sections under "Encoded today"
 3. **`scripts/frontmatter.mjs`** — increment `PRODUCTION_RISK_COUNT` or `TEST_RISK_COUNT`
 4. **`scripts/report-parse.mjs`** — add the code → display-name entry to `RISK_CATALOG`
 5. **Mode guide(s)** (`pr-review-guide.md`, `architecture-guide.md`, `debt-guide.md`, `test-guide.md`) — add diagnostic questions for the new risk where relevant
@@ -106,20 +106,17 @@ CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # Claude Code platform install p
 
 The hook should print a JSON object with an `additionalContext` or `hookSpecificOutput` key.
 
-To test the skill itself, copy the *contents* of `skills/` — `cp -r skills/ <dest>` would nest a
-second `skills/` inside an existing destination and `../_shared/` would stop resolving:
+To test the skill itself, install the complete bundle.
 
 ```bash
-mkdir -p ~/.claude/skills/brooks-lint
-cp -r skills/* ~/.claude/skills/brooks-lint/
+bash scripts/install.sh claude
 ```
 
-Then run any of `/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`,
-`/brooks-health`, `/brooks-sweep` (or their `/brooks-lint:`-prefixed full forms).
+Select `/brooks-lint` and give it a mode such as `brooks-lint->review`.
 
 ## PR Conventions
 
-- Run `/brooks-review` on your own diff before opening a PR, and paste the Health Score and any
+- Run the review mode on your own diff before opening a PR, and paste the Health Score and any
   Critical findings into the description. (Yes, we review our own contributions with the tool
   we're building.)
 - Keep PRs focused — one decay-risk improvement or one eval addition per PR.

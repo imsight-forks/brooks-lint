@@ -9,15 +9,14 @@ no conversion.
 
 ```bash
 # simplest — one command (global)
-curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- bob
+curl -fsSL https://raw.githubusercontent.com/imsight-forks/brooks-lint/main/scripts/install.sh | bash -s -- bob
 
 # from a clone
 ./scripts/install.sh bob            # global: ~/.bob/skills
 ./scripts/install.sh bob --project  # this repo: ./.bob/skills
 ```
 
-Prefer a manual copy? Clone the repo and `cp -r skills/* ~/.bob/skills/` — the contents, not the
-`skills/` folder itself, so `_shared/` lands as a sibling of the `brooks-*` folders.
+For a manual installation, clone the repo and run `cp -r skills/brooks-lint ~/.bob/skills/` to copy the complete bundle.
 
 Bob scans these skill roots, highest priority first, so an existing vendor-neutral install is picked
 up automatically:
@@ -31,17 +30,7 @@ When the same skill name appears in two roots, the project-level skill takes pre
 
 ## Invoke
 
-Just ask — Bob routes to a skill from its `description`:
-
-- "review this PR" → `brooks-review`
-- "audit the architecture" → `brooks-audit`
-- "where's our worst tech debt?" → `brooks-debt`
-
-For explicit invocation, type `/` followed by the skill token in the chat prompt, or type it by
-hand: `/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`, `/brooks-health`,
-`/brooks-sweep`. The repo's `AGENTS.md` carries the Iron Law (Symptom → Source →
-Consequence → Remedy) and the Health Score rules; Bob also loads `~/.bob/AGENTS.md` plus every
-`AGENTS.md` from the project root down to your working directory.
+Select `/brooks-lint` in the chat prompt, then give it a mode such as `brooks-lint->review` and the diff to review. Bob also reads `~/.bob/AGENTS.md` and the project instructions along the path to your working directory.
 
 ## Notes
 

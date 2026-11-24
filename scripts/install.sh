@@ -2,16 +2,13 @@
 #
 # brooks-lint universal skill installer.
 #
-# brooks-lint ships as standard Agent Skills (SKILL.md). Most modern coding
-# agents discover skills from a per-platform folder with a single-level glob
-# (skills/<name>/SKILL.md) and read shared files via the relative path
-# ../_shared/. This script copies the six skills + _shared/ FLAT into the right
-# folder for your platform, so the relative reads always resolve — you can't get
-# the layout wrong.
+# brooks-lint ships one Agent Skill with six bundled subskills and their
+# references. This script copies the entire brooks-lint directory into your
+# agent's skill directory.
 #
 # Usage:
 #   ./scripts/install.sh <platform> [--project]
-#   curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
+#   curl -fsSL https://raw.githubusercontent.com/imsight-forks/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
 #
 # Platforms: opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents bob
 #   agents = the vendor-neutral ~/.agents/skills folder (read by Cursor, Copilot, pi, Gemini,
@@ -24,7 +21,7 @@
 #
 set -euo pipefail
 
-REPO_URL="https://github.com/hyhmrright/brooks-lint.git"
+REPO_URL="https://github.com/imsight-forks/brooks-lint.git"
 PLATFORMS="opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents bob"
 
 err()  { printf '\033[31merror:\033[0m %s\n' "$*" >&2; }
@@ -127,18 +124,15 @@ else
 fi
 
 SRC="$(resolve_src)"
-[ -d "$SRC" ] || { err "could not locate skills/ source at: $SRC"; exit 1; }
+[ -f "$SRC/brooks-lint/SKILL.md" ] || { err "could not locate brooks-lint skill at $SRC"; exit 1; }
 
-# --- copy flat ---------------------------------------------------------------
-info "Installing brooks-lint skills"
+# --- copy the bundle ---------------------------------------------------------
+info "Installing brooks-lint"
 info "  from: $SRC"
 info "  to:   $DEST"
 mkdir -p "$DEST"
-cp -R "$SRC"/* "$DEST"/
+cp -R "$SRC/brooks-lint" "$DEST"/
 
-count="$(find "$DEST" -maxdepth 2 -name SKILL.md | wc -l | tr -d ' ')"
-ok "Installed $count skills (+ _shared/) into $DEST"
-info "Flat layout verified: brooks-* and _shared/ are siblings, so ../_shared/ resolves."
+ok "Installed brooks-lint into $DEST/brooks-lint"
 echo
-info "Next: open your agent and ask \"review this PR\" / \"audit the architecture\","
-info "or invoke a skill directly (e.g. /brooks-review). See docs/<platform>-setup.md."
+info "Select brooks-lint explicitly in your agent and choose a mode. See docs/<platform>-setup.md."

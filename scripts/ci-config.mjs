@@ -1,7 +1,7 @@
 /**
  * Project-config resolution for the non-interactive paths (GitHub Action / CI).
  *
- * Interactively, `_shared/common.md` tells the agent to read `.brooks-lint.yaml`
+ * Interactively, `references/common.md` tells the agent to read `.brooks-lint.yaml`
  * from the project root itself. In CI that instruction is dead: ci-review.mjs
  * sends a single `messages.create` call with no `tools`, so the model has no way
  * to read any file. Every setting in the config — `disable`, `focus`,
@@ -22,6 +22,7 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { skillResources } from "./assemble-prompt.mjs";
 
 /** The one config filename brooks-lint reads. */
 export const CONFIG_FILENAME = ".brooks-lint.yaml";
@@ -247,7 +248,7 @@ export function configSystemBlock({ content, provenance, attempted = [] }) {
  */
 export function customRisksBlock(skillsDir) {
   try {
-    return readFileSync(path.join(skillsDir, "_shared", "custom-risks-guide.md"), "utf8");
+    return readFileSync(path.join(skillResources(skillsDir).sharedDir, "custom-risks-guide.md"), "utf8");
   } catch {
     return null;
   }

@@ -154,6 +154,9 @@ test('observed trigger requires successful content-read evidence rather than cla
   assert.equal(actual.turn_completed, true);
   assert.deepEqual(actual.skill_reads.map(item => item.skill), ['brooks-review']);
   assert.deepEqual(actual.usage, finished.usage);
+  const bundledContent = skillContent.replace('name: brooks-review', 'name: review').replace('## Setup', '## Workflow');
+  const bundledRead = traceEvent('cat .agents/skills/brooks-lint/subskills/review/SKILL-MAIN.md', bundledContent);
+  assert.deepEqual(analyzeTrace(jsonl([bundledRead, finished])).skill_reads.map(item => item.skill), ['brooks-review']);
   for (const misleading of [
     { type: 'item.completed', item: { type: 'agent_message', text: 'I used brooks-review and read its SKILL.md.' } },
     traceEvent('cat .agents/skills/brooks-review/SKILL.md', skillContent, 1),
@@ -162,6 +165,8 @@ test('observed trigger requires successful content-read evidence rather than cla
     traceEvent("rg 'name:|## Setup|^---' .agents/skills/brooks-review/SKILL.md", '---\nname: brooks-review\n---\n## Setup'),
     traceEvent("rg -A 2 'name:|## Setup|^---' .agents/skills/brooks-review/SKILL.md", skillContent),
     traceEvent('cat README.md', 'Use .agents/skills/brooks-review/SKILL.md\n' + skillContent),
+    traceEvent('cat .agents/skills/brooks-lint/SKILL.md', bundledContent),
+    traceEvent('cat .agents/skills/brooks-lint/org/src/brooks-review/SKILL-SOURCE.md', skillContent),
   ]) {
     assert.deepEqual(analyzeTrace(jsonl([misleading, finished])).skill_reads, [], JSON.stringify(misleading));
   }
@@ -293,10 +298,12 @@ test('runner materializes identical committed fixtures and installs skills only 
     materializeRepo(repo, sampleCase, arm);
     for (const file of sampleCase.files) assert.equal(readFileSync(path.join(repo, file.path), 'utf8'), file.content);
     assert.equal(existsSync(path.join(repo, 'AGENTS.md')), false);
-    assert.equal(existsSync(path.join(repo, '.agents/skills/brooks-review/SKILL.md')), arm === 'with');
+    assert.equal(existsSync(path.join(repo, '.agents/skills/brooks-lint/SKILL.md')), arm === 'with');
     if (arm === 'with') {
-      for (const skill of ['review', 'audit', 'debt', 'test', 'health', 'sweep']) assert.ok(existsSync(path.join(repo, `.agents/skills/brooks-${skill}/SKILL.md`)));
-      assert.ok(existsSync(path.join(repo, '.agents/skills/_shared/common.md')));
+      for (const mode of ['review', 'audit', 'debt', 'test', 'health', 'sweep']) {
+        assert.ok(existsSync(path.join(repo, `.agents/skills/brooks-lint/subskills/${mode}/SKILL-MAIN.md`)));
+      }
+      assert.ok(existsSync(path.join(repo, '.agents/skills/brooks-lint/references/common.md')));
     } else assert.equal(existsSync(path.join(repo, '.agents')), false);
     const status = spawnSync('git', ['status', '--porcelain'], { cwd: repo, encoding: 'utf8' });
     assert.equal(status.status, 0, status.stderr);
@@ -345,7 +352,11 @@ const skills = existsSync(skillDir) ? readdirSync(skillDir).filter(name => name.
 const record = { args, cwd: process.cwd(), home: process.env.HOME, codexHome: process.env.CODEX_HOME, skills, authPresent: existsSync(path.join(process.env.CODEX_HOME, 'auth.json')), files: readdirSync(process.cwd()) };
 appendFileSync(${JSON.stringify(capture)}, JSON.stringify(record) + '\\n');
 if (args.includes('debug')) {
-  process.stdout.write(JSON.stringify([{ role: 'developer', content: [{ type: 'input_text', text: '<skills_instructions>\\n### Available skills\\n' + skills.map(name => '- ' + name + ': fixture (file: /fixture/' + name + '/SKILL.md)').join('\\n') + '\\n</skills_instructions>' }] }]));
+  const automaticSkills = skills.filter(name => {
+    const policy = path.join(skillDir, name, 'agents/openai.yaml');
+    return !existsSync(policy) || !readFileSync(policy, 'utf8').includes('allow_implicit_invocation: false');
+  });
+  process.stdout.write(JSON.stringify([{ role: 'developer', content: [{ type: 'input_text', text: '<skills_instructions>\\n### Available skills\\n' + automaticSkills.map(name => '- ' + name + ': fixture (file: /fixture/' + name + '/SKILL.md)').join('\\n') + '\\n</skills_instructions>' }] }]));
 } else {
   let input = '';
   for await (const chunk of process.stdin) input += chunk;
@@ -363,7 +374,7 @@ if (args.includes('debug')) {
     const completed = await session({ c: sampleCase, arm, judge, prompt: `Fixture prompt ${name}`, options, destination });
     assert.equal(completed.answer, 'Fixture completed.');
     assert.equal(completed.trace.turn_completed, true);
-    assert.equal(completed.discovered_skills.length, name === 'treatment' ? 6 : 0);
+    assert.deepEqual(completed.discovered_skills, []);
     assert.ok(existsSync(path.join(destination, 'events.jsonl')));
     assert.equal(readFileSync(path.join(destination, 'answer.txt'), 'utf8'), 'Fixture completed.');
   }
@@ -378,11 +389,15 @@ if (args.includes('debug')) {
     for (const flag of ['--ignore-user-config', '--ignore-rules', '--ephemeral', '--json', 'read-only']) assert.ok(row.args.includes(flag), flag);
     for (const setting of ['features.plugins=false', 'features.apps=false', 'features.hooks=false', 'skills.bundled.enabled=false', 'project_doc_max_bytes=0']) assert.ok(row.args.includes(setting), setting);
   }
-  assert.deepEqual(executions.map(row => row.skills.length), [6, 0, 0]);
+  assert.deepEqual(executions.map(row => row.skills), [['brooks-lint'], [], []]);
   assert.ok(executions[2].args.includes('--output-schema'));
   assert.ok(executions[2].args.includes('features.shell_tool=false'));
   assert.deepEqual(executions[2].files, ['.git'], 'Judge must not inherit task files or local skills');
-  assert.deepEqual(captures.filter(row => row.input).map(row => row.input), ['Fixture prompt treatment', 'Fixture prompt baseline', 'Fixture prompt judge']);
+  assert.deepEqual(captures.filter(row => row.input).map(row => row.input), [
+    'Use $brooks-lint and invoke brooks-lint->review. Read .agents/skills/brooks-lint/SKILL.md and follow its route.\n\nFixture prompt treatment',
+    'Fixture prompt baseline',
+    'Fixture prompt judge',
+  ]);
 });
 
 test('session rejects preflight skill mismatch before execution and removes temporary credentials', async t => {
@@ -565,10 +580,10 @@ test('three-run severity archive preserves fixed criteria, complete attempts, an
   for (const field of ['model', 'reasoning', 'cli_version', 'cases_sha256', 'judge_schema_sha256', 'timeout_seconds']) assert.equal(archive[field], prior[field], field);
   assert.equal(archive.repetitions, 3);
   assert.equal(archive.planned_pairs, corpus.cases.length * 3);
-  for (const [field, file] of [['runner_sha256', 'scripts/run-codex-evals.mjs'], ['evaluator_sha256', 'scripts/codex-eval.mjs']]) {
-    assert.equal(archive[field], prior[field], 'Judging, metrics and runner isolation must remain fixed');
-    assert.equal(archive[field], digest(readFileSync(new URL(`../${file}`, import.meta.url))), 'Archive must identify the actual unchanged evaluator source');
-  }
+  assert.equal(archive.runner_sha256, prior.runner_sha256, 'Archived comparisons must use the same runner');
+  assert.equal(archive.runner_sha256, original.revalidation_source_sha256['scripts/run-codex-evals.mjs'], 'Archive must identify the historical runner');
+  assert.equal(archive.evaluator_sha256, prior.evaluator_sha256, 'Archived comparisons must use the same evaluator');
+  assert.equal(archive.evaluator_sha256, original.revalidation_source_sha256['scripts/codex-eval.mjs'], 'Archive must identify the historical evaluator');
   assert.equal(archive.cases_sha256, digest(readFileSync(new URL('../evals/codex/cases.json', import.meta.url))));
   assert.equal(archive.judge_schema_sha256, digest(readFileSync(new URL('../evals/codex/judge-schema.json', import.meta.url))));
   assert.notEqual(archive.skills_sha256, prior.skills_sha256);

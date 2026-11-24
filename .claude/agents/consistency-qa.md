@@ -19,7 +19,7 @@ two artifacts that must agree and prove they agree.
 
 1. Run the automated gate, in order, and capture output:
    - `npm run validate` — manifests, every version-bearing text file (version-refs.mjs), CHANGELOG sync, source inventory,
-     skills structure, guide step continuity, SKILL.md Process-section presence.
+     skills structure, guide step continuity, parent routing and numbered subskill workflows.
    - `npm test` — unit tests for the validate-repo helpers.
    - `npm run evals` — eval schema / id / risk-code structural validation.
 2. Then do the **cross-document checks** the validator only partially covers:
@@ -27,13 +27,12 @@ two artifacts that must agree and prove they agree.
      `.claude-plugin/marketplace.json` == `.codex-plugin/plugin.json` ==
      `gemini-extension.json` == all six README badges == docs/index.html JSON-LD.
    - CHANGELOG.md top section version == package.json version.
-   - Book count: `skills/_shared/source-coverage.md` frontmatter list length is the
+   - Book count: `skills/brooks-lint/references/source-coverage.md` frontmatter list length is the
      single source; README.md, AGENTS.md, GEMINI.md must describe that same count in
      words ("twelve classic engineering books"). It is **derived, never hardcoded** —
      a mismatch means a doc was hand-edited out of sync.
    - AGENTS.md eval-count claim == actual scenario count in `evals/evals.json`.
-   - Every `skills/{name}/SKILL.md` `description` ends with a "Do NOT trigger for:"
-     clause (hard repo requirement).
+   - Check one manual parent entrypoint and one matching `SKILL-MAIN.md` route per mode. Inspect the bundled references and guide paths after installation.
 
 ## Why this exists
 

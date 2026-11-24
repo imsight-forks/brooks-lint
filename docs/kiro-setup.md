@@ -8,28 +8,24 @@ command**, so all six brooks-lint modes run with no conversion.
 
 ```bash
 # simplest — one command (global)
-curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- kiro
+curl -fsSL https://raw.githubusercontent.com/imsight-forks/brooks-lint/main/scripts/install.sh | bash -s -- kiro
 
 # from a clone
 ./scripts/install.sh kiro            # global:  ~/.kiro/skills
 ./scripts/install.sh kiro --project  # this repo: ./.kiro/skills
 ```
 
-Prefer a manual copy? Clone the repo and `cp -r skills/* ~/.kiro/skills/` — the contents, not the
-`skills/` folder itself, so `_shared/` lands as a sibling of the `brooks-*` folders.
+For a manual installation, clone the repo and run `cp -r skills/brooks-lint ~/.kiro/skills/` to copy the complete bundle.
 
 Or use the IDE: **Agent Steering & Skills** panel → **+** → **Import a skill** → paste a GitHub URL or
 pick a local folder (Kiro copies it into your skills folder).
 
 ## Invoke
 
-Ask naturally ("review this PR", "audit the architecture"), or use the auto-registered slash command
-`/brooks-review`. `AGENTS.md` is always-included and carries the Iron Law and Health Score rules.
+Select `/brooks-lint`, then give it a mode such as `brooks-lint->audit` and the intended scope. `AGENTS.md` carries the shared report rules.
 
 ## Notes
 
-- **Flat layout** is mandatory (the installer guarantees it): `../_shared/` only resolves when
-  `_shared/` is a sibling of the `brooks-*` folders.
 - Kiro requires the folder name to equal the skill's `name` (✅ already true here), `name` ≤ 64 chars,
   and `description` ≤ 1024 chars (brooks-lint's longest is ~920).
 - 🧪 Documented per the official [skills docs](https://kiro.dev/docs/skills/); community end-to-end

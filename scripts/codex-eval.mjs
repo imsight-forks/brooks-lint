@@ -31,7 +31,7 @@ export function validateCases(data) {
   return data.cases;
 }
 
-/** Trigger = successful observed SKILL.md content read, never a self-reported claim. */
+/** Observe a mode entrypoint read in current and archived traces. */
 export function analyzeTrace(jsonl) {
   const events = jsonl.split(/\r?\n/).filter(Boolean).map(line => JSON.parse(line));
   const reads = [];
@@ -41,9 +41,17 @@ export function analyzeTrace(jsonl) {
     if (e.type !== 'item.completed' || item?.type !== 'command_execution' || item.exit_code !== 0) continue;
     // Deliberately conservative: search hits and echoed metadata are not reads.
     if (!/(?:^|[;&|]\s*|['"])(?:cat|head|tail|sed|awk)\s/.test(item.command ?? '')) continue;
-    for (const name of SKILLS) {
-      if (item.command?.includes(name) && item.command.includes('SKILL.md') &&
-          new RegExp(`^name: ${name}\\s*$`, 'm').test(item.aggregated_output ?? '') && /^## Setup[^\S\n]*\n\s*[^\s#-]/m.test(item.aggregated_output ?? '') && /^---\s*$/m.test(item.aggregated_output ?? '')) {
+    const command = item.command.replaceAll('\\', '/');
+    const output = item.aggregated_output ?? '';
+    for (const [mode, { directory: name }] of Object.entries(MODES)) {
+      const bundled = command.includes(`subskills/${mode}/SKILL-MAIN.md`);
+      const legacy = command.includes(name) && command.includes('SKILL.md');
+      const entryName = bundled ? mode : name;
+      const heading = bundled ? 'Workflow' : 'Setup';
+      if ((bundled || legacy) &&
+          new RegExp(`^name: ${entryName}\\s*$`, 'm').test(output) &&
+          new RegExp(`^## ${heading}[^\\S\\n]*\\n\\s*[^\\s#-]`, 'm').test(output) &&
+          /^---\s*$/m.test(output)) {
         reads.push({ skill: name, event_index: index, command: item.command });
       }
     }

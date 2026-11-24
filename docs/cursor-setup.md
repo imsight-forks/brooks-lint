@@ -7,27 +7,23 @@ loads `SKILL.md` skills and reads `AGENTS.md`, so all six brooks-lint modes run 
 
 ```bash
 # simplest — one command (global)
-curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- cursor
+curl -fsSL https://raw.githubusercontent.com/imsight-forks/brooks-lint/main/scripts/install.sh | bash -s -- cursor
 
 # from a clone
 ./scripts/install.sh cursor            # global:  ~/.cursor/skills
 ./scripts/install.sh cursor --project  # this repo: ./.cursor/skills
 ```
 
-Prefer a manual copy? Clone the repo and `cp -r skills/* ~/.cursor/skills/` — the contents, not the
-`skills/` folder itself, so `_shared/` lands as a sibling of the `brooks-*` folders.
+For a manual installation, clone the repo and run `cp -r skills/brooks-lint ~/.cursor/skills/` to copy the complete bundle.
 
 Cursor also loads `.agents/skills/` / `~/.agents/skills/` and existing Claude/Codex skill folders, so
 `./scripts/install.sh agents` works too and is shared with Copilot and pi.
 
 ## Invoke
 
-Ask naturally ("review this PR", "audit the architecture") and Cursor selects the matching skill from
-its `description`, or use the `/brooks-review` slash form once the skill is discovered.
+Select `/brooks-lint` in chat, then provide a mode such as `brooks-lint->review` and the requested scope.
 
 ## Notes
 
-- **Flat layout** is mandatory (the installer guarantees it): `../_shared/` only resolves when
-  `_shared/` is a sibling of the `brooks-*` folders.
 - 🧪 Documented per the official [skills docs](https://cursor.com/docs/skills); community end-to-end
   verification welcome — [open an issue](https://github.com/hyhmrright/brooks-lint/issues/new).

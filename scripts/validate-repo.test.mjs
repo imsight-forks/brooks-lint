@@ -305,6 +305,17 @@ test("assembles sweep prompt with both risk catalogs and sweep guide", () => {
   assert.match(prompt, /# Brooks-Lint .* Full Sweep Guide/);
 });
 
+test("assembles review prompts from a skill bundle and a legacy skills directory", () => {
+  const skills = path.join(__dirname, "..", "skills");
+  const bundle = path.join(skills, "brooks-lint");
+  assert.equal(assembleSystemPrompt("review", bundle), assembleSystemPrompt("review", skills));
+  const legacy = path.join(bundle, "org", "src");
+  const guide = readFileSync(path.join(legacy, "brooks-review", "pr-review-guide.md"), "utf8");
+  assert.ok(assembleSystemPrompt("review", legacy).includes(guide));
+  const customGuide = readFileSync(path.join(legacy, "_shared", "custom-risks-guide.md"), "utf8");
+  assert.equal(customRisksBlock(legacy), customGuide);
+});
+
 // ── hasOpencodeSlashFlag ───────────────────────────────────────────────────
 
 console.log("\nhasOpencodeSlashFlag");
@@ -349,11 +360,9 @@ test("ignores an opencode/slash line outside the frontmatter", () => {
   assert.equal(hasOpencodeSlashFlag(text), false);
 });
 
-test("every shipped skill carries the flag", () => {
-  for (const mode of VALID_MODES) {
-    const skillMd = readFileSync(path.join(__dirname, "..", "skills", `brooks-${mode}`, "SKILL.md"), "utf8");
-    assert.ok(hasOpencodeSlashFlag(skillMd), `brooks-${mode}/SKILL.md should opt into OpenCode's / menu`);
-  }
+test("the packaged parent skill carries the flag", () => {
+  const skillMd = readFileSync(path.join(__dirname, "..", "skills", "brooks-lint", "SKILL.md"), "utf8");
+  assert.ok(hasOpencodeSlashFlag(skillMd));
 });
 
 // ── readHistory ────────────────────────────────────────────────────────────
@@ -1365,8 +1374,8 @@ function runScript(file, cwd) {
 }
 
 /**
- * A throwaway clone with the working tree's scripts copied in, staged as if a
- * release were being cut.
+ * A throwaway clone with the working tree's scripts and skill bundle copied
+ * in, staged as if a release were being cut.
  *
  * Both release scripts resolve their root from __dirname, so they can only ever
  * examine brooks-lint itself — which is always tagged. Everything they do while
@@ -1385,6 +1394,9 @@ function withStagedRelease({ version, section, subject, tagIt = false }, check) 
     // Source release tags must not compete with the synthetic fixture tags.
     execFileSync("git", ["clone", "--no-tags", "-q", path.resolve(__dirname, ".."), dir], { encoding: "utf8" });
     cpSync(__dirname, path.join(dir, "scripts"), { recursive: true });
+    const fixtureSkills = path.join(dir, "skills");
+    rmSync(fixtureSkills, { recursive: true, force: true });
+    cpSync(path.resolve(__dirname, "..", "skills"), fixtureSkills, { recursive: true });
 
     // The tag lands BEFORE the commit under audit. Tagging HEAD instead would
     // collapse the range to nothing and the fixture would prove nothing.

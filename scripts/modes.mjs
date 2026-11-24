@@ -1,4 +1,6 @@
 /** Shared mode contract for prompt assembly, fixtures, and tool-less runners. */
+export const BUNDLE_NAME = "brooks-lint";
+
 export const MODES = {
   review: { directory: "brooks-review", guides: ["pr-review-guide.md"], risks: ["R", "T"], runners: ["ci", "eval"] },
   audit: { directory: "brooks-audit", guides: ["architecture-guide.md", "onboarding-guide.md"], risks: ["R"], runners: ["eval"] },

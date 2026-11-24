@@ -8,15 +8,14 @@ folders**, so all six brooks-lint modes run with no conversion.
 
 ```bash
 # personal (all repos) — one command
-curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- copilot
+curl -fsSL https://raw.githubusercontent.com/imsight-forks/brooks-lint/main/scripts/install.sh | bash -s -- copilot
 
 # from a clone
 ./scripts/install.sh copilot            # personal: ~/.copilot/skills
 ./scripts/install.sh copilot --project  # this repo: ./.github/skills
 ```
 
-Prefer a manual copy? Clone the repo and `cp -r skills/* .github/skills/` — the contents, not the
-`skills/` folder itself, so `_shared/` lands as a sibling of the `brooks-*` folders. Commit it so the
+For a manual installation, clone the repo and run `cp -r skills/brooks-lint .github/skills/` to copy the complete bundle. Commit it so the
 cloud agent and reviewers share the same skills.
 
 Copilot discovers skills from `.github/skills`, `.claude/skills`, `.agents/skills` (project) and
@@ -25,14 +24,10 @@ is shared with Cursor and pi.
 
 ## Invoke
 
-Ask naturally in Copilot Chat / CLI ("review this PR", "audit the architecture") — Copilot loads the
-matching skill on demand from its `description`. `AGENTS.md` (or `.github/copilot-instructions.md`)
-carries the Iron Law and Health Score rules.
+Explicitly select `brooks-lint` in Copilot and provide a mode such as `brooks-lint->review` plus the requested scope. Keep project instructions in `AGENTS.md` or `.github/copilot-instructions.md`.
 
 ## Notes
 
-- **Flat layout** is mandatory (the installer guarantees it): `../_shared/` only resolves when
-  `_shared/` is a sibling of the `brooks-*` folders.
 - Org/enterprise-level skills were "coming soon" at launch; repo-level `.github/skills` works today.
 - 🧪 Documented per the [Agent Skills announcement](https://github.blog/changelog/2025-12-18-github-copilot-now-supports-agent-skills/)
   and [docs](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills); community

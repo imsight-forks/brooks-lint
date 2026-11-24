@@ -12,23 +12,20 @@ Seis flujos para revisión de código, arquitectura, deuda técnica, calidad de 
 Versiones publicadas: [npm](https://www.npmjs.com/package/brooks-lint) · [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases)
 
 [Migración de 1.9.1 a 2.0.0](docs/migration-v2.md)
-brooks-lint reúne Agent Skills, instrucciones compartidas y pequeñas herramientas deterministas para informes. Tu agente de programación realiza el diagnóstico. No es un analizador estático ni garantiza que el modelo encuentre todos los defectos.
+brooks-lint reúne las instrucciones y herramientas de informes en una sola habilidad. Tu agente de programación realiza el diagnóstico. No es un analizador estático ni garantiza que el modelo encuentre todos los defectos.
 
 ## Empezar con Codex
 
 ```bash
-# Source checkout: Git + Bash
-git clone https://github.com/hyhmrright/brooks-lint.git
-cd brooks-lint
-bash scripts/install.sh codex
+npx skills add imsight-forks/brooks-lint --skill brooks-lint --agent codex
 ```
 
 ```text
-$brooks-review Review the current diff and identify supported maintainability risks.
-$brooks-health Assess this repository; distinguish missing evidence from clean dimensions.
+$brooks-lint brooks-lint->review Review the current diff and identify supported maintainability risks.
+$brooks-lint brooks-lint->health Assess this repository; distinguish missing evidence from clean dimensions.
 ```
 
-Esto instala el código actual en el directorio global de habilidades de Codex. Abre una sesión nueva si no aparecen. Para instalar en otro proyecto, ejecuta el script por su ruta absoluta desde ese proyecto con `codex --project`. Mantén `_shared` al mismo nivel que las seis habilidades. Consulta la [guía de Codex](docs/codex-setup.md).
+Ejecuta el comando de instalación en el proyecto de Codex. Abre una sesión nueva para que Codex detecte la habilidad. Consulta la [guía de Codex](docs/codex-setup.md).
 
 Instala la última versión publicada con Node.js 20+: `npx brooks-lint@latest install codex`. Consulta [primeros pasos](docs/getting-started.md) para otros destinos.
 
@@ -36,14 +33,14 @@ Instala la última versión publicada con Node.js 20+: `npx brooks-lint@latest i
 
 | Habilidad | Uso | ¿Modifica archivos? |
 |---|---|---|
-| `$brooks-review` | Un diff o código indicado: contrato, riesgos sustentados y un ejemplo que distinga comportamientos. | No |
-| `$brooks-audit` | Dependencias, responsabilidades y límites entre módulos; incluye una guía de incorporación. | No |
-| `$brooks-debt` | Clasificación de deuda de mantenimiento, prioridades y plan de pago. | No |
-| `$brooks-test` | Una suite existente: fallos que sus aserciones detectan o dejan pasar. | No |
-| `$brooks-health` | Evaluación abreviada de cuatro dimensiones y un panel limitado por la evidencia. | No |
-| `$brooks-sweep` | Diagnosticar y aplicar reparaciones autorizadas y verificables dentro de un alcance definido. | Sí |
+| `brooks-lint->review` | Un diff o código indicado: contrato, riesgos sustentados y un ejemplo que distinga comportamientos. | No |
+| `brooks-lint->audit` | Dependencias, responsabilidades y límites entre módulos; incluye una guía de incorporación. | No |
+| `brooks-lint->debt` | Clasificación de deuda de mantenimiento, prioridades y plan de pago. | No |
+| `brooks-lint->test` | Una suite existente: fallos que sus aserciones detectan o dejan pasar. | No |
+| `brooks-lint->health` | Evaluación abreviada de cuatro dimensiones y un panel limitado por la evidencia. | No |
+| `brooks-lint->sweep` | Diagnosticar y aplicar reparaciones autorizadas y verificables dentro de un alcance definido. | Sí |
 
-Codex usa `$brooks-review`; los demás entornos tienen su propia sintaxis. La activación por lenguaje natural depende del entorno y del modelo. Health no sustituye cuatro auditorías exhaustivas. Sweep necesita herramientas de edición y verificación, respeta la autorización existente y no vuelve a pedir permiso solo porque cambien varios archivos.
+Selecciona `$brooks-lint` de forma explícita en Codex y elige el modo. Health no sustituye cuatro auditorías exhaustivas. Sweep necesita herramientas de edición y verificación, respeta la autorización existente y no vuelve a pedir permiso solo porque cambien varios archivos.
 
 ## Cómo interpretar un informe
 
@@ -51,9 +48,9 @@ Un hallazgo retenido sigue **Síntoma → Fuente → Consecuencia → Remedio**.
 
 La puntuación resume los hallazgos retenidos según la configuración; **no es una probabilidad de corrección**. Health usa un único registro para calidad de código, arquitectura, deuda y pruebas. Si se permite ejecutar herramientas, las utilidades Node calculan y finalizan el informe. Una dimensión necesaria sin evidencia decisiva es **unassessed** y bloquea la puntuación compuesta numérica. Solo PR sin diff puede ser **skipped**, redistribuyendo su peso. No hallar problemas no equivale a no haber evaluado.
 
-La herramienta de entrega compara los bytes proporcionados con el informe finalizado y su recibo. No verifica la verdad del diagnóstico, la presentación posterior en una interfaz ni el transporte. Si no se puede ejecutar, deben declararse los límites sin inventar recibos. [Registro y contrato de herramientas](skills/brooks-health/score-ledger.md).
+La herramienta de entrega compara los bytes proporcionados con el informe finalizado y su recibo. No verifica la verdad del diagnóstico, la presentación posterior en una interfaz ni el transporte. Si no se puede ejecutar, deben declararse los límites sin inventar recibos. [Registro y contrato de herramientas](skills/brooks-lint/subskills/health/references/score-ledger.md).
 
-Sweep permite por defecto **tres rondas de reparación en total**, incluida la inicial y las dedicadas solo a Critical. También respeta los presupuestos de tiempo y herramientas. Explica la causa de parada y lo pendiente. Un alcance local limpio puede coexistir con dimensiones más amplias desconocidas. [Guía](skills/brooks-sweep/sweep-guide.md).
+Sweep permite por defecto **tres rondas de reparación en total**, incluida la inicial y las dedicadas solo a Critical. También respeta los presupuestos de tiempo y herramientas. Explica la causa de parada y lo pendiente. Un alcance local limpio puede coexistir con dimensiones más amplias desconocidas. [Guía](skills/brooks-lint/subskills/sweep/references/sweep-guide.md).
 
 ## Vocabulario de riesgos
 
@@ -83,7 +80,7 @@ Sweep permite por defecto **tres rondas de reparación en total**, incluida la i
 | *Working Effectively with Legacy Code* | Michael Feathers |
 | *xUnit Test Patterns* | Gerard Meszaros |
 
-La [matriz de fuentes](skills/_shared/source-coverage.md) documenta conceptos, compromisos y protección frente a falsos positivos. Esta clasificación es una síntesis del proyecto, no una taxonomía oficial conjunta de los autores.
+La [matriz de fuentes](skills/brooks-lint/references/source-coverage.md) documenta conceptos, compromisos y protección frente a falsos positivos. Esta clasificación es una síntesis del proyecto, no una taxonomía oficial conjunta de los autores.
 
 <a id="benchmark"></a>
 
@@ -114,12 +111,12 @@ Son instrucciones iniciales y entregables previstos, no victorias adicionales de
 
 | Habilidad | Primera tarea útil |
 |---|---|
-| `$brooks-review` | Revisa este diff según su contrato; muestra una entrada mínima que distinga un defecto del comportamiento protegido. |
-| `$brooks-audit` | Traza esta dependencia entre módulos e identifica al responsable de la regla vulnerada. |
-| `$brooks-debt` | Prioriza estos problemas de mantenimiento por impacto en los cambios y propone el menor paso de amortización. |
-| `$brooks-test` | Muestra una implementación defectuosa que estas pruebas aceptarían y la aserción que la distingue. |
-| `$brooks-health` | Evalúa este alcance con un único registro de hallazgos; separa problemas respaldados, dimensiones sin hallazgos y desconocidas. |
-| `$brooks-sweep` | Diagnostica y repara este alcance autorizado en un máximo de tres rondas; ejecuta las comprobaciones disponibles e informa de lo pendiente. |
+| `brooks-lint->review` | Revisa este diff según su contrato; muestra una entrada mínima que distinga un defecto del comportamiento protegido. |
+| `brooks-lint->audit` | Traza esta dependencia entre módulos e identifica al responsable de la regla vulnerada. |
+| `brooks-lint->debt` | Prioriza estos problemas de mantenimiento por impacto en los cambios y propone el menor paso de amortización. |
+| `brooks-lint->test` | Muestra una implementación defectuosa que estas pruebas aceptarían y la aserción que la distingue. |
+| `brooks-lint->health` | Evalúa este alcance con un único registro de hallazgos; separa problemas respaldados, dimensiones sin hallazgos y desconocidas. |
+| `brooks-lint->sweep` | Diagnostica y repara este alcance autorizado en un máximo de tres rondas; ejecuta las comprobaciones disponibles e informa de lo pendiente. |
 
 Son casos de desarrollo relacionados, con evaluación no independiente. Las repeticiones no son proyectos independientes. Las instrucciones estáticas no prueban el descubrimiento nativo, todos los modelos ni todo el código actual de 2.0.0.
 
@@ -162,7 +159,7 @@ sweep:
 #   - T5
 ```
 
-Empieza con [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml). El contrato compartido define rigor, severidad, exclusiones, `focus`/`disable`, riesgos `Cx` y supresiones acotadas. Desactivar T5 omite deliberadamente su diagnóstico; T5 no es solo un porcentaje de cobertura. [Contrato común](skills/_shared/common.md).
+Empieza con [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml). El contrato compartido define rigor, severidad, exclusiones, `focus`/`disable`, riesgos `Cx` y supresiones acotadas. Desactivar T5 omite deliberadamente su diagnóstico; T5 no es solo un porcentaje de cobertura. [Contrato común](skills/brooks-lint/references/common.md).
 
 ## CI es una vía independiente
 

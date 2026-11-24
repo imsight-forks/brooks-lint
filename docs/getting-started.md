@@ -1,6 +1,6 @@
 # Getting started
 
-brooks-lint provides six Agent Skills and their shared framework. Diagnosis is
+Brooks Lint provides one Agent Skill with six analysis modes. Diagnosis is
 performed by your coding agent; reading, editing and execution capabilities vary
 by host. Current maintainer verification covers Codex. Other integrations are
 retained, but layout tests are not an end-to-end host compatibility claim.
@@ -9,7 +9,13 @@ retained, but layout tests are not an end-to-end host compatibility claim.
 
 See [npm](https://www.npmjs.com/package/brooks-lint) and [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases) for published versions.
 
-For the published package, with Node.js 20+:
+Install the fork's bundle from a Codex project.
+
+```bash
+npx skills add imsight-forks/brooks-lint --skill brooks-lint --agent codex
+```
+
+For the published npm package, with Node.js 20+:
 
 ```bash
 npx brooks-lint@latest install codex
@@ -20,7 +26,7 @@ npx brooks-lint@latest install --list
 To try the current source, including changes ahead of the published package, use Git and Bash:
 
 ```bash
-git clone https://github.com/hyhmrright/brooks-lint.git
+git clone https://github.com/imsight-forks/brooks-lint.git
 cd brooks-lint
 bash scripts/install.sh codex
 ```
@@ -35,23 +41,31 @@ custom destination. These commands install skills, not native IDE extensions.
 The shell installer copies from its adjacent checkout when present; its remote
 form clones main. Record the checkout commit if you need reproducibility.
 
-## Preserve the shared layout
+## Bundle layout
 
 ```text
 <skills-dir>/
-├── brooks-review/SKILL.md
-├── brooks-audit/SKILL.md
-├── brooks-debt/SKILL.md
-├── brooks-test/SKILL.md
-├── brooks-health/SKILL.md
-├── brooks-sweep/SKILL.md
-└── _shared/common.md
+└── brooks-lint/
+    ├── SKILL.md
+    ├── agents/openai.yaml
+    ├── references/
+    └── subskills/
+        ├── review/SKILL-MAIN.md
+        ├── audit/SKILL-MAIN.md
+        ├── debt/SKILL-MAIN.md
+        ├── test/SKILL-MAIN.md
+        ├── health/SKILL-MAIN.md
+        └── sweep/SKILL-MAIN.md
 ```
 
-The guides read `../_shared/`; `_shared` is a resource directory, not a seventh
-skill. Copying only SKILL.md or nesting all folders under an extra directory may
-break discovery or relative reads. The health folder also contains its Node
-scoring and delivery tools; keep those resources with it.
+Copy the entire `skills/brooks-lint` directory for a manual install. Its
+`references/` and `subskills/` directories contain the report contracts and
+health's scoring and delivery tools.
+
+If you installed the six standalone skills before this change, remove those
+entries through the tool that installed them when you switch to the bundle.
+For entries tracked by the Skills CLI, use `npx skills remove` with the
+installed names, such as `brooks-review`.
 
 ## Pick a workflow
 
@@ -61,8 +75,8 @@ four-dimension dashboard. Sweep additionally edits within an authorized scope
 and requires verification tools; it has a default limit of three total repair
 rounds, including Critical-only rounds. No host is promised identical behavior.
 
-In Codex, try `$brooks-review` with a concrete scope. Use the host's native skill
-syntax elsewhere. Natural-language auto-discovery depends on the host and model.
+Select the parent explicitly using your host's skill picker or invocation
+syntax. In Codex, try `$brooks-lint brooks-lint->review Review the current diff.`
 If a skill is unavailable, start a fresh session and inspect the actual installed
 files and sibling resources before assuming that a successful copy means a
 successful invocation.

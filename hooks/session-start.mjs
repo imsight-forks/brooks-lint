@@ -28,9 +28,10 @@ function readVersion() {
 
 function installCommands(version) {
   const commandDir = path.join(homeDir, ".claude", "commands");
-  const sentinel = path.join(commandDir, `.brooks-lint-v${version}`);
+  // Replace prior wrappers even when the plugin version has not changed.
+  const sentinel = path.join(commandDir, `.brooks-lint-v${version}-bundle`);
 
-  // Already installed for this version — nothing to do.
+  // Already installed for this version and layout.
   if (existsSync(sentinel)) return;
 
   mkdirSync(commandDir, { recursive: true });
@@ -60,15 +61,14 @@ function installCommands(version) {
 
 function buildContext() {
   return [
-    "You have the brooks-lint plugin installed. It provides six independent skills - load the relevant one via the Skill tool:",
-    "  brooks-lint:brooks-review  -> PR code review",
-    "  brooks-lint:brooks-audit   -> Architecture audit",
-    "  brooks-lint:brooks-debt    -> Tech debt assessment",
-    "  brooks-lint:brooks-test    -> Test quality review",
-    "  brooks-lint:brooks-health  -> Codebase health dashboard",
-    "  brooks-lint:brooks-sweep   -> Full sweep: analyse all dimensions and auto-fix findings",
-    "",
-    "Triggers when the user asks to review code, discuss architecture, assess tech debt, or discuss test quality. Each skill's own description carries its full trigger phrases and exclusions.",
+    "Run Brooks Lint when the user explicitly invokes the parent skill or a mode command.",
+    "  /brooks-lint:brooks-lint -> Select a Brooks Lint mode",
+    "  /brooks-review  -> PR code review",
+    "  /brooks-audit   -> Architecture audit",
+    "  /brooks-debt    -> Tech debt assessment",
+    "  /brooks-test    -> Test quality review",
+    "  /brooks-health  -> Codebase health dashboard",
+    "  /brooks-sweep   -> Full sweep with scoped repairs",
   ].join("\n");
 }
 

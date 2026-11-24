@@ -6,10 +6,10 @@ import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'n
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { calculateDashboard, renderScoreBlock, verifyScoreBlock } from '../skills/brooks-health/scripts/score-dashboard.mjs';
+import { calculateDashboard, renderScoreBlock, verifyScoreBlock } from '../skills/brooks-lint/subskills/health/scripts/score-dashboard.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const helper = path.join(root, 'skills/brooks-health/scripts/score-dashboard.mjs');
+const helper = path.join(root, 'skills/brooks-lint/subskills/health/scripts/score-dashboard.mjs');
 const dimensions = ['pr', 'architecture', 'debt', 'test'];
 const risk = { pr: 'R1', architecture: 'R5', debt: 'R2', test: 'T1' };
 const clean = (strictness = 'strict') => ({ strictness, hasDiff: true,
@@ -38,7 +38,7 @@ test('literal strict, balanced and legacy witnesses agree with the documented de
     'legacy-friendly': { scores: [97, 76, 99, 100], numerator: 9180, denominator: 100, composite: 92 },
   };
   const deductions = { strict: [20, 8, 2], balanced: [15, 5, 1], 'legacy-friendly': [8, 3, 1] };
-  const common = readFileSync(path.join(root, 'skills/_shared/common.md'), 'utf8');
+  const common = readFileSync(path.join(root, 'skills/brooks-lint/references/common.md'), 'utf8');
   for (const [preset, truth] of Object.entries(expected)) {
     const ledger = strictExample(); ledger.strictness = preset;
     assert.deepEqual(view(calculateDashboard(ledger)), truth, preset);
@@ -62,7 +62,7 @@ test('SR-03 half-up and no-diff witnesses keep exact weights; clean is distinct 
   assert.deepEqual(calculateDashboard(absent).dimensions.map(d => d.weight), [0, 30, 25, 20]);
   assert.deepEqual(view(calculateDashboard(clean())), { scores: [100, 100, 100, 100], numerator: 10000, denominator: 100, composite: 100 });
   assert.deepEqual(view(calculateDashboard(noDiff(clean()))), { scores: [null, 100, 100, 100], numerator: 7500, denominator: 75, composite: 100 });
-  const guide = readFileSync(path.join(root, 'skills/brooks-health/health-guide.md'), 'utf8');
+  const guide = readFileSync(path.join(root, 'skills/brooks-lint/subskills/health/references/health-guide.md'), 'utf8');
   for (const [label, weight] of [['PR (code quality)', '0.25'], ['Architecture', '0.30'], ['Debt', '0.25'], ['Test', '0.20']]) {
     assert(guide.split('\n').some(line => line.startsWith(`| ${label} | ${weight} |`)), `Guide weight drift: ${label}`);
   }
@@ -213,7 +213,7 @@ test('CLI render/check and symlink entry points produce output; invalid commands
 });
 
 test('finalization inserts one verified total and rejects competing score surfaces', async () => {
-  const { finalizeDashboard, verifyDashboard, SCORE_PLACEHOLDER } = await import('../skills/brooks-health/scripts/score-dashboard.mjs');
+  const { finalizeDashboard, verifyDashboard, SCORE_PLACEHOLDER } = await import('../skills/brooks-lint/subskills/health/scripts/score-dashboard.mjs');
   const ledger = strictExample();
   const draft = `# Brooks-Lint Health Dashboard\n\n${SCORE_PLACEHOLDER}\n\n## Recommendation\nInvestigate architecture findings.\n`;
   const report = finalizeDashboard(ledger, draft);
@@ -267,7 +267,7 @@ test('finalize/check-report CLI preserves inputs, refuses overwrites and binds f
 // The scorer consumes these statuses; it does not infer them from evidence text.
 // These checks exercise finalization safety, not model compliance with the guide.
 test('bounded evidence witness finalizes its own scope without a project-wide clean claim', async () => {
-  const { finalizeDashboard, verifyDashboard, SCORE_PLACEHOLDER } = await import('../skills/brooks-health/scripts/score-dashboard.mjs');
+  const { finalizeDashboard, verifyDashboard, SCORE_PLACEHOLDER } = await import('../skills/brooks-lint/subskills/health/scripts/score-dashboard.mjs');
   const ledger = noDiff(withFindings({ debt: ['warning'] }, 'balanced'));
   ledger.dimensions.debt.findings[0].id = 'shared-policy-change';
   const draft = `# Local policy adapters\nScope: the two supplied adapters and their complete assertion inventory.\n` +
@@ -287,7 +287,7 @@ test('bounded evidence witness finalizes its own scope without a project-wide cl
 });
 
 test('missing assertion bodies leave completed local architecture and debt scores intact', async () => {
-  const { finalizeDashboard, verifyDashboard, SCORE_PLACEHOLDER } = await import('../skills/brooks-health/scripts/score-dashboard.mjs');
+  const { finalizeDashboard, verifyDashboard, SCORE_PLACEHOLDER } = await import('../skills/brooks-lint/subskills/health/scripts/score-dashboard.mjs');
   const ledger = noDiff(withFindings({ debt: ['warning'] }, 'balanced'));
   ledger.dimensions.test = { status: 'unassessed', reason: 'Only test names supplied; assertion bodies are unavailable.' };
   const report = finalizeDashboard(ledger, `# Bounded scan\nLocal ownership and dependencies were inspected. Test assertions remain unavailable.\n${SCORE_PLACEHOLDER}\n`);

@@ -14,8 +14,8 @@ dsh plugin --profile web add brooks-lint
 ```
 
 For the desktop app, use `dsh plugin --profile desktop add brooks-lint`. Fully quit the desktop
-app before changing its profile from the CLI, then reopen it. The plugin registers all six modes
-and provides their shared framework resources.
+app before changing its profile from the CLI, then reopen it. The bundled provider
+registers the `brooks-lint` skill with all six modes and their shared references.
 
 Many thanks to [@Sad-happy](https://github.com/Sad-happy) for implementing the native DSH bundle
 and skill provider in [PR #44](https://github.com/hyhmrright/brooks-lint/pull/44), then verifying
@@ -49,12 +49,12 @@ npx brooks-lint install --list
 Avoid installing both plugin and filesystem copies. The shell installer also remains available:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- dsh
+curl -fsSL https://raw.githubusercontent.com/imsight-forks/brooks-lint/main/scripts/install.sh | bash -s -- dsh
 # from a clone; add --project for the current repo
 ./scripts/install.sh dsh
 ```
 
-For manual installation, copy `skills/*` flat so `_shared/` sits beside the `brooks-*` folders.
+For manual installation, copy the complete `skills/brooks-lint` directory.
 Automated installation tests verify file layouts and resources, not behavior in every host.
 
 dsh scans these skill roots, highest priority first, so an existing vendor-neutral install is picked
@@ -72,27 +72,12 @@ directory. When the same skill name appears in two roots, the higher one wins.
 
 ## Invoke
 
-Just ask — dsh routes to a skill from its `description`:
-
-- "review this PR" → `brooks-review`
-- "audit the architecture" → `brooks-audit`
-- "where's our worst tech debt?" → `brooks-debt`
-
-For explicit invocation, type `/` in the Web UI prompt and pick the skill, or type the token by hand:
-`/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`, `/brooks-health`, `/brooks-sweep`.
-dsh recognises a whitespace-bounded `/name` anywhere in a message and injects that skill's body
-deterministically. The repo's `AGENTS.md` carries the Iron Law (Symptom → Source → Consequence →
-Remedy) and the Health Score rules; dsh also loads `$DSH_HOME/AGENTS.md` plus every `AGENTS.md` from
-the project root down to your working directory.
+Select `/brooks-lint` from the Web UI slash picker, or type the whitespace-bounded token in your prompt. For example, use `/brooks-lint brooks-lint->review Review the current diff.` DSH also reads `$DSH_HOME/AGENTS.md` and the project instructions.
 
 ## Notes
 
 The following layout details apply to filesystem installation.
 
-- **Flat layout** is mandatory (the installer guarantees it): discovery is one level deep
-  (`<root>/<name>/SKILL.md`), never recursive, and the skills read `../_shared/`, which only resolves
-  when `_shared/` sits beside the `brooks-*` folders. `_shared/` itself has no `SKILL.md`, so dsh
-  ignores it as a skill and the modes read it as ordinary files.
 - dsh is in developer preview and warns of compatibility-breaking changes; the skill discovery
   contract above reflects `packages/skill/skill-filesystem` as of August 2026.
 - 🧪 Documented per the official [skills subsystem](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/skills.md)
